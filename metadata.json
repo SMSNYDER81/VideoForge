@@ -1,0 +1,6 @@
+{
+  "name": "VideoForge",
+  "description": "Browser-native multi-track video editor built for creators, families, students, and beginners.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

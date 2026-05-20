@@ -1,0 +1,9 @@
+export const PIXELS_PER_SECOND = 40
+
+export const TIMELINE_LEFT_OFFSET = 0
+
+export const TRACK_HEIGHT = 64
+
+export const SNAP_THRESHOLD = 12
+
+export const TIMELINE_MARKER_INTERVAL = PIXELS_PER_SECOND
