@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
+import { PIXELS_PER_SECOND } from '../core/timeline/constants'
 
 export default function ClipTrimHandles({
   clip,
   onTrimLeft,
-  onTrimRight
+  onTrimRight,
+  onTrimEnd
 }) {
   const trimState = useRef(null)
 
@@ -29,7 +31,7 @@ export default function ClipTrimHandles({
       const deltaX =
         moveEvent.clientX - trimState.current.startX
 
-      const deltaTime = deltaX / 34
+      const deltaTime = deltaX / PIXELS_PER_SECOND
 
       if (
         trimState.current.direction === 'left' &&
@@ -60,6 +62,10 @@ export default function ClipTrimHandles({
         'mouseup',
         stopTrim
       )
+
+      if (onTrimEnd) {
+        onTrimEnd()
+      }
     }
 
     window.addEventListener(

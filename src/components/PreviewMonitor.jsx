@@ -88,7 +88,12 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
   useEffect(() => {
     if (!videoRef.current || !clip || clip.type?.startsWith('audio') || clip.type?.startsWith('text')) return
 
-    const relativeTime = Math.max(0, currentTime - clipStartTime)
+    const speed = clip.speed || 1.0
+    const relativeTime = Math.max(0, (currentTime - clipStartTime) * speed)
+
+    if (videoRef.current.playbackRate !== speed) {
+      videoRef.current.playbackRate = speed
+    }
 
     // Keep playhead within video bounds to prevent jumping
     if (Math.abs(videoRef.current.currentTime - relativeTime) > 0.25) {
@@ -99,8 +104,17 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
   useEffect(() => {
     if (!videoRef.current || !clip || clip.type?.startsWith('audio') || clip.type?.startsWith('text')) return
 
+    const speed = clip.speed || 1.0
+    if (videoRef.current.playbackRate !== speed) {
+      videoRef.current.playbackRate = speed
+    }
+
     if (playbackState === 'playing') {
-      videoRef.current.play().catch(() => {})
+      videoRef.current.play().catch(() => {}).then(() => {
+        if (videoRef.current) {
+          videoRef.current.playbackRate = speed
+        }
+      })
     } else {
       videoRef.current.pause()
     }
@@ -120,6 +134,20 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
   const isImage = clip.type?.startsWith('image') || clip.url?.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)
   const isVideo = clip.type?.startsWith('video') || clip.url?.match(/\.(mp4|webm|ogg)$/i) || (!isImage && clip.url)
 
+  const getCSSFilter = (effectName) => {
+    switch (effectName) {
+      case 'sepia': return 'sepia(0.85) contrast(0.95)'
+      case 'grayscale': return 'grayscale(1) contrast(1.1) brightness(1.02)'
+      case 'blur': return 'blur(5px)'
+      case 'invert': return 'invert(0.9) hue-rotate(180deg)'
+      case 'warm': return 'saturate(1.4) sepia(0.25) contrast(1.05)'
+      case 'cool': return 'hue-rotate(200deg) saturate(1.2) contrast(1.05)'
+      case 'psychedelic': return 'hue-rotate(90deg) saturate(2.2) contrast(1.2)'
+      case 'vhs': return 'contrast(1.2) saturate(1.5) hue-rotate(-10deg) brightness(1.05)'
+      default: return 'none'
+    }
+  }
+
   return (
     <div 
       className="w-full h-full relative overflow-hidden flex items-center justify-center bg-[#07080c]"
@@ -133,6 +161,7 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
           muted
           preload="auto"
           playsInline
+          style={{ filter: getCSSFilter(clip.filterEffect) }}
         />
       ) : isImage ? (
         <img
@@ -140,6 +169,7 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
           src={clip.url}
           alt={clip.name}
           referrerPolicy="no-referrer"
+          style={{ filter: getCSSFilter(clip.filterEffect) }}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center p-4 bg-zinc-900 text-zinc-200 font-medium text-xs text-center leading-normal">
@@ -350,9 +380,36 @@ export default function PreviewMonitor() {
 
         {/* Overlaid Captions / Lyrics Renderer (shows in Single standard mode to match editing tracks) */}
         {splitScreenLayout === 'single' && clipText && (
-          <div className="absolute bottom-6 left-4 right-4 z-30 flex justify-center pointer-events-none">
-            <div className="bg-black/80 px-4 py-1.5 rounded-lg border border-zinc-800/40 shadow-xl max-w-sm text-center">
-              <p className="text-xs font-sans font-bold tracking-wide text-yellow-300 drop-shadow-md select-none">
+          <div 
+            className="absolute left-4 right-4 z-30 flex justify-center pointer-events-none transition-all duration-150"
+            style={{
+              top: clipText.textPosition === 'top' ? '16px' : clipText.textPosition === 'middle' ? '41%' : 'auto',
+              bottom: clipText.textPosition === 'bottom' || !clipText.textPosition ? '16px' : 'auto',
+            }}
+          >
+            <div 
+              style={{
+                backgroundColor: clipText.textBgColor || 'rgba(0,0,0,0.8)',
+                padding: '5px 14px',
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.06)',
+                boxShadow: '0 8px 20px -4px rgba(0,0,0,0.4)',
+                maxWidth: '85%',
+                textAlign: clipText.textAlign || 'center',
+              }}
+            >
+              <p 
+                style={{
+                  color: clipText.textColor || '#fde047',
+                  fontSize: clipText.fontSize || '13px',
+                  fontFamily: clipText.fontFamily === 'serif' ? 'Georgia, serif' : clipText.fontFamily === 'mono' ? '"JetBrains Mono", monospace' : clipText.fontFamily === 'display' ? '"Space Grotesk", sans-serif' : 'Inter, sans-serif',
+                  fontWeight: clipText.textWeight || 'bold',
+                  fontStyle: clipText.textStyle || 'normal',
+                  userSelect: 'none',
+                  textShadow: '0 1.5px 3px rgba(0,0,0,0.7)',
+                  lineHeight: '1.3',
+                }}
+              >
                 {clipText.name}
               </p>
             </div>

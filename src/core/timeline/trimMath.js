@@ -1,3 +1,5 @@
+import { PIXELS_PER_SECOND } from './constants'
+
 export function trimClipRight(
   clip,
   nextDuration
@@ -5,7 +7,7 @@ export function trimClipRight(
   return {
     ...clip,
     duration: Math.max(1, nextDuration),
-    width: Math.max(60, nextDuration * 34)
+    width: Math.max(60, nextDuration * PIXELS_PER_SECOND)
   }
 }
 
@@ -24,6 +26,6 @@ export function trimClipLeft(
     mediaStartOffset:
       (clip.mediaStartOffset || 0) + deltaTime,
     duration: adjustedDuration,
-    width: Math.max(60, adjustedDuration * 34)
+    width: Math.max(60, adjustedDuration * PIXELS_PER_SECOND)
   }
 }

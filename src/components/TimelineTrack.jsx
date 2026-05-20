@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 
 import ClipTrimHandles from './ClipTrimHandles'
 
+import { PIXELS_PER_SECOND } from '../core/timeline/constants'
+
 import {
   normalizePosition,
   pixelsToTime,
@@ -282,6 +284,24 @@ export default function TimelineTrack({
               clip.width ||
               170
 
+            const previewStartTime =
+              trimPreview[clip.id]?.startTime !== undefined
+                ? trimPreview[clip.id].startTime
+                : clip.startTime || 0
+
+            let clipBackground = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
+            if (trackKeyName.startsWith('video')) {
+              clipBackground = 'linear-gradient(135deg, #27272a 0%, #09090b 100%)'
+            } else if (trackKeyName === 'voice') {
+              clipBackground = 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)'
+            } else if (trackKeyName === 'music') {
+              clipBackground = 'linear-gradient(135deg, #134e5e 0%, #111e25 100%)'
+            } else if (trackKeyName === 'sfx') {
+              clipBackground = 'linear-gradient(135deg, #78350f 0%, #451a03 100%)'
+            } else if (trackKeyName === 'text') {
+              clipBackground = 'linear-gradient(135deg, #311042 0%, #1e1b4b 100%)'
+            }
+
             return (
               <div
                 key={clip.id}
@@ -295,12 +315,13 @@ export default function TimelineTrack({
                 }
                 style={{
                   width: `${previewWidth}px`,
-                  left: `${timeToPixels(clip.startTime || 0)}px`,
+                  left: `${timeToPixels(previewStartTime)}px`,
                   marginLeft: 0,
                   cursor: 'grab',
                   zIndex: isSelected ? 40 : 10,
                   borderRadius: '4px',
                   overflow: 'hidden',
+                  background: clipBackground,
                   transition:
                     'width 0.05s linear, border 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease',
                   transform: isSelected
@@ -348,7 +369,7 @@ export default function TimelineTrack({
                       calculateClipResize({
                         initialWidth:
                           clip.width || 170,
-                        deltaX: deltaTime * 34
+                        deltaX: deltaTime * PIXELS_PER_SECOND
                       })
 
                     const nextDuration =
@@ -375,11 +396,39 @@ export default function TimelineTrack({
                       [clip.id]: trimmed
                     }))
                   }}
+                  onTrimEnd={() => {
+                    const preview = trimPreview[clip.id]
+                    if (preview) {
+                      useEditorStore.getState().updateClipProperties(clip.id, {
+                        width: preview.width,
+                        duration: preview.duration,
+                        startTime: preview.startTime,
+                        mediaStartOffset: preview.mediaStartOffset
+                      })
+                      setTrimPreview((previous) => {
+                        const next = { ...previous }
+                        delete next[clip.id]
+                        return next
+                      })
+                    }
+                  }}
                 />
 
-                <span className="clip-title">
-                  {clip.name}
-                </span>
+                <div className="flex items-center gap-1 min-w-0 flex-1 select-none pointer-events-none pr-6">
+                  <span className="clip-title truncate">
+                    {clip.name}
+                  </span>
+                  {clip.speed && clip.speed !== 1.0 && (
+                    <span className="px-1 text-[8px] font-mono leading-none font-extrabold bg-indigo-500/40 text-indigo-300 border border-indigo-400/20 rounded shrink-0">
+                      {clip.speed}x
+                    </span>
+                  )}
+                  {clip.volume !== undefined && clip.volume !== 1.0 && (
+                    <span className="px-1 text-[8px] font-mono leading-none font-extrabold bg-emerald-500/40 text-emerald-300 border border-emerald-400/20 rounded shrink-0">
+                      {Math.round(clip.volume * 100)}%
+                    </span>
+                  )}
+                </div>
               </div>
             )
           })

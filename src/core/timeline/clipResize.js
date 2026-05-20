@@ -1,3 +1,5 @@
+import { PIXELS_PER_SECOND } from './constants'
+
 export function calculateClipResize({
   initialWidth,
   deltaX,
@@ -11,7 +13,7 @@ export function calculateClipResize({
 
 export function widthToDuration(
   width,
-  pixelsPerSecond = 34
+  pixelsPerSecond = PIXELS_PER_SECOND
 ) {
   return width / pixelsPerSecond
 }

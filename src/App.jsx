@@ -19,7 +19,9 @@ import {
   Play,
   Trash2,
   Library,
-  Layers
+  Layers,
+  Type,
+  Gauge
 } from 'lucide-react'
 
 import MediaDropzone from './components/MediaDropzone'
@@ -196,6 +198,28 @@ export default function App() {
       width: 170,
       startTime: nextStartTime
     })
+  }
+
+  const handleAddTextClip = () => {
+    const nextStartTime = editor.currentTime
+    editor.addClipToTrack('text', {
+      id: crypto.randomUUID(),
+      mediaId: 'custom-text-' + crypto.randomUUID().slice(0, 4),
+      name: 'Custom Text Subtitle Caption',
+      type: 'text/plain',
+      url: '',
+      width: 3 * 40, // 3 seconds duration
+      startTime: nextStartTime,
+      textColor: '#fde047',
+      fontSize: '13px',
+      fontFamily: 'sans-serif',
+      textBgColor: 'rgba(0,0,0,0.8)',
+      textPosition: 'bottom',
+      textWeight: 'bold',
+      textStyle: 'normal'
+    })
+    setSidebarTab('inspector')
+    playSynthSFX('beep')
   }
 
   const handleDeleteClip = (trackKey, clipId) => {
@@ -579,8 +603,158 @@ export default function App() {
                         </div>
                       </div>
 
+                      {/* Text Track Specific Caption Formatting & Alignment Options */}
+                      {selectedClipTrack === 'text' && (
+                        <div className="p-2.5 bg-indigo-950/20 border border-indigo-900 rounded-lg space-y-3.5">
+                          <div className="text-[10px] uppercase font-bold tracking-wider text-indigo-400 font-mono flex items-center gap-1 leading-none select-none">
+                            <Type size={11} className="text-indigo-400 animate-pulse" />
+                            Render Styles & Presets:
+                          </div>
+
+                          {/* Font family selects */}
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
+                              Font Face Class:
+                            </label>
+                            <select
+                              value={selectedClip.fontFamily || 'sans-serif'}
+                              onChange={(e) => editor.updateClipProperties(selectedClip.id, { fontFamily: e.target.value })}
+                              className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1.5 text-[10.5px] text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                            >
+                              <option value="sans-serif">Clean Sans-Serif (Inter)</option>
+                              <option value="serif">Elegant Editorial Serif</option>
+                              <option value="mono">JetBrains Technical Mono</option>
+                              <option value="display">Tech Space Grotesk</option>
+                            </select>
+                          </div>
+
+                          {/* Font size adjustment */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between select-none">
+                              <label className="text-[9px] font-bold text-zinc-400 font-mono">
+                                Font Size (pixels):
+                              </label>
+                              <span className="text-[9px] font-mono text-indigo-450 font-bold">
+                                {selectedClip.fontSize || '13px'}
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min="10"
+                              max="40"
+                              step="1"
+                              value={parseInt(selectedClip.fontSize || '13px', 10)}
+                              onChange={(e) => editor.updateClipProperties(selectedClip.id, { fontSize: `${e.target.value}px` })}
+                              className="w-full accent-indigo-505 cursor-pointer text-indigo-400"
+                            />
+                          </div>
+
+                          {/* Fast Color Presets picker bar row */}
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
+                              Text Hue Preset:
+                            </label>
+                            <div className="flex items-center gap-2">
+                              {[
+                                { name: 'Yellow Glow', hex: '#fde047' },
+                                { name: 'Pristine White', hex: '#ffffff' },
+                                { name: 'Ice Cyan', hex: '#22d3ee' },
+                                { name: 'Emerald Green', hex: '#4ade80' },
+                                { name: 'Rose Red', hex: '#fb7185' },
+                                { name: 'Neon Purple', hex: '#c084fc' }
+                              ].map((col) => (
+                                <button
+                                  key={col.hex}
+                                  type="button"
+                                  onClick={() => editor.updateClipProperties(selectedClip.id, { textColor: col.hex })}
+                                  className="w-5 h-5 rounded-full border border-zinc-950 transition-all hover:scale-110 active:scale-95 relative cursor-pointer"
+                                  style={{ backgroundColor: col.hex }}
+                                  title={col.name}
+                                >
+                                  {(selectedClip.textColor || '#fde047') === col.hex && (
+                                    <span className="absolute inset-0 flex items-center justify-center text-[8px] text-zinc-950 font-black">✓</span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Exact Hex code input */}
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
+                              Custom Hex Color code:
+                            </label>
+                            <input
+                              type="text"
+                              value={selectedClip.textColor || '#fde047'}
+                              onChange={(e) => editor.updateClipProperties(selectedClip.id, { textColor: e.target.value })}
+                              className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1 text-[10.5px] text-zinc-200 focus:outline-none focus:border-indigo-500 font-mono"
+                              placeholder="#fde047"
+                            />
+                          </div>
+
+                          {/* Screen Position */}
+                          <div className="space-y-1.5">
+                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
+                              Overlay Screen Position:
+                            </label>
+                            <div className="grid grid-cols-3 gap-1">
+                              {[
+                                { label: 'Top Cap', val: 'top' },
+                                { label: 'Mid-Screen', val: 'middle' },
+                                { label: 'Bottom Cap', val: 'bottom' }
+                              ].map((item) => (
+                                <button
+                                  key={item.val}
+                                  type="button"
+                                  onClick={() => editor.updateClipProperties(selectedClip.id, { textPosition: item.val })}
+                                  className={`py-1.5 rounded text-[8.5px] font-bold tracking-wide uppercase border font-mono cursor-pointer transition-all ${
+                                    (selectedClip.textPosition || 'bottom') === item.val
+                                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm'
+                                      : 'bg-zinc-950 text-zinc-450 border-zinc-900 hover:text-zinc-300'
+                                  }`}
+                                >
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Style Modifiers */}
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => editor.updateClipProperties(selectedClip.id, {
+                                textWeight: selectedClip.textWeight === 'bold' || !selectedClip.textWeight ? 'normal' : 'bold'
+                              })}
+                              className={`flex-1 py-1 rounded text-[9.5px] font-bold border font-mono transition-all cursor-pointer ${
+                                (selectedClip.textWeight || 'bold') === 'bold'
+                                  ? 'bg-indigo-950/60 text-indigo-300 border-indigo-900/60'
+                                  : 'bg-zinc-950 text-zinc-500 border-zinc-900'
+                              }`}
+                            >
+                              Bold Face
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => editor.updateClipProperties(selectedClip.id, {
+                                textStyle: selectedClip.textStyle === 'italic' ? 'normal' : 'italic'
+                              })}
+                              className={`flex-1 py-1 rounded text-[9.5px] font-bold border font-mono transition-all cursor-pointer ${
+                                selectedClip.textStyle === 'italic'
+                                  ? 'bg-indigo-950/60 text-indigo-300 border-indigo-900/60'
+                                  : 'bg-zinc-950 text-zinc-500 border-zinc-900'
+                              }`}
+                            >
+                              Italic Font
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Transition FX Selectors */}
-                      <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-3">
+                      {selectedClipTrack !== 'text' && (
+                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-3">
                         
                         {/* Transition IN selector */}
                         <div className="space-y-1.5">
@@ -665,6 +839,135 @@ export default function App() {
                           />
                         </div>
                       </div>
+                      )}
+
+                      {/* Audio & Volume Control Section */}
+                      {selectedClip && selectedClipTrack && (
+                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1">
+                              <Volume2 size={10.5} className="text-emerald-400" />
+                              Clip Volume:
+                            </span>
+                            <span className="text-[9.5px] font-mono text-emerald-400 font-bold">
+                              {Math.round((selectedClip.volume ?? 1.0) * 100)}%
+                            </span>
+                          </div>
+
+                          <input
+                            type="range"
+                            min="0"
+                            max="1.5"
+                            step="0.05"
+                            value={selectedClip.volume ?? 1.0}
+                            onChange={(e) => editor.updateClipProperties(selectedClip.id, { volume: parseFloat(e.target.value) })}
+                            className="w-full accent-emerald-500 cursor-pointer"
+                            title="Adjust audio mixing volume gain (default 100%, boost up to 150%)"
+                          />
+
+                          <div className="flex gap-1.5 justify-between">
+                            <button
+                              type="button"
+                              onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 0.0 })}
+                              className="flex-1 py-0.5 rounded bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-850 text-[8px] font-mono hover:text-white cursor-pointer select-none"
+                            >
+                              MUTE
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 0.5 })}
+                              className="flex-1 py-0.5 rounded bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-850 text-[8px] font-mono hover:text-white cursor-pointer select-none"
+                            >
+                              50%
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 1.0 })}
+                              className="flex-1 py-0.5 rounded bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-850 text-[8px] font-mono hover:text-white cursor-pointer select-none"
+                            >
+                              100%
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Visual Filter Selector Section */}
+                      {selectedClip && selectedClipTrack && (selectedClipTrack.startsWith('video') || selectedClip.type?.startsWith('image') || selectedClip.type?.startsWith('video')) && (
+                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-2">
+                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1.5 select-none">
+                            <Sparkles size={11} className="text-indigo-400" />
+                            Visual Filter Style:
+                          </label>
+                          <select
+                            value={selectedClip.filterEffect || 'none'}
+                            onChange={(e) => editor.updateClipProperties(selectedClip.id, { filterEffect: e.target.value })}
+                            className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1.5 text-[11px] text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                          >
+                            <option value="none">Normal (No Filter)</option>
+                            <option value="sepia">Vintage Sepia</option>
+                            <option value="grayscale">Classic Noir Black & Blue</option>
+                            <option value="warm">Warming Golden Sunset</option>
+                            <option value="cool">Cooling Nordic Sci-Fi</option>
+                            <option value="blur">Dreamy Gaussian Blur</option>
+                            <option value="invert">Inverted Color Neon</option>
+                            <option value="psychedelic">Psychedelic Hue-Cycle</option>
+                            <option value="vhs">CRT Analog VHS Glitch Retro</option>
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Playback Speed Multiplier Panel */}
+                      {selectedClip && selectedClipTrack && selectedClipTrack !== 'text' && (
+                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-2">
+                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1.5 select-none">
+                            <Gauge size={11} className="text-pink-400" />
+                            Playback Velocity Speed:
+                          </label>
+
+                          <div className="grid grid-cols-5 gap-1">
+                            {[
+                              { label: '0.25x', val: 0.25 },
+                              { label: '0.5x', val: 0.5 },
+                              { label: '1.0x', val: 1.0 },
+                              { label: '1.5x', val: 1.5 },
+                              { label: '2.0x', val: 2.0 }
+                            ].map((item) => {
+                              const currSpeed = selectedClip.speed || 1.0;
+                              const isActive = currSpeed === item.val;
+                              return (
+                                <button
+                                  key={item.label}
+                                  type="button"
+                                  onClick={() => {
+                                    const oldSpeed = selectedClip.speed || 1.0;
+                                    const newSpeed = item.val;
+                                    const ratio = oldSpeed / newSpeed;
+                                    const origWidth = selectedClip.width || 170;
+                                    // Scale width and truncate/round
+                                    const newWidth = Math.max(40, Math.round(origWidth * ratio));
+                                    const newDuration = newWidth / 40;
+
+                                    editor.updateClipProperties(selectedClip.id, { 
+                                      speed: newSpeed,
+                                      width: newWidth,
+                                      duration: newDuration
+                                    });
+                                    playSynthSFX('beep');
+                                  }}
+                                  className={`py-1 rounded text-[8.5px] font-bold tracking-tight font-mono outline-none cursor-pointer transition-all ${
+                                    isActive
+                                      ? 'bg-pink-600 text-white font-black border border-pink-500'
+                                      : 'bg-zinc-950 text-zinc-400 border border-zinc-900 hover:text-zinc-200'
+                                  }`}
+                                  title={`Speed factor: multiply play speed by ${item.val}`}
+                                >
+                                  {item.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Generic helpful tips */}
                       <div className="p-2.5 rounded bg-zinc-900/20 border border-zinc-900 text-[9px] text-zinc-500 leading-normal flex items-start gap-1.5 select-none">
@@ -726,6 +1029,20 @@ export default function App() {
                   >
                     <Scissors size={11} className={editor.selectedClip ? "text-indigo-200" : "text-zinc-600"} />
                     <span>Split Clip</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleAddTextClip()
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 cursor-pointer bg-purple-600 hover:bg-purple-500 text-white shadow-sm border border-purple-500/30"
+                    title="Insert a customizable text overlay caption segment at current playhead"
+                    id="btn-add-text-clip"
+                  >
+                    <Type size={11} className="text-purple-200" />
+                    <span>+ Text Caption</span>
                   </button>
 
                   <button
