@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   BookOpen,
   FolderOpen,
@@ -27,6 +27,7 @@ import {
 import MediaDropzone from './components/MediaDropzone'
 import ExportModal from './components/ExportModal'
 import HelpGuidesModal from './components/HelpGuidesModal'
+import ProjectDraftsModal from './components/ProjectDraftsModal'
 import PlaybackControls from './components/PlaybackControls'
 import Playhead from './components/Playhead'
 import PreviewMonitor from './components/PreviewMonitor'
@@ -40,6 +41,7 @@ import useKeyboardShortcuts from './hooks/useKeyboardShortcuts'
 import usePlaybackEngine from './hooks/usePlaybackEngine'
 import { getMediaCategory } from './utils/mediaUtils'
 import { playSynthSFX } from './utils/sfxSynth'
+import { db } from './storage/db'
 
 const FILMORA_TABS = [
   { id: 'media', label: 'Media', icon: FolderOpen, title: 'Manage added media or drag drop files to timeline' },
@@ -75,8 +77,62 @@ const STOCK_LIBRARY = [
     badge: 'Synth'
   },
   {
+    id: 'stock-cyberpunk',
+    name: 'Cyberpunk Neon Rainy Street',
+    category: 'video',
+    type: 'video/mp4',
+    size: 4510000,
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-cyberpunk-neon-city-street-with-people-and-cars-43187-large.mp4',
+    badge: 'Retro Fiction'
+  },
+  {
+    id: 'stock-ink',
+    name: 'Colorful Paint Cloud Swirl',
+    category: 'video',
+    type: 'video/mp4',
+    size: 3120000,
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-colorful-ink-swirling-in-water-43306-large.mp4',
+    badge: 'Abstract'
+  },
+  {
+    id: 'stock-grid',
+    name: 'Retro Futuristic Grid Horizon',
+    category: 'video',
+    type: 'video/mp4',
+    size: 2950000,
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-retro-futuristic-grid-bg-loop-42861-large.mp4',
+    badge: 'Cyber Grid'
+  },
+  {
+    id: 'stock-earth',
+    name: 'Slow Orbiting Blue Earth',
+    category: 'video',
+    type: 'video/mp4',
+    size: 5120000,
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-view-of-planet-earth-spinning-in-space-40660-large.mp4',
+    badge: 'Galactic'
+  },
+  {
+    id: 'stock-forest-fog',
+    name: 'Dense Moody Foggy Pines',
+    category: 'video',
+    type: 'video/mp4',
+    size: 1840000,
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-foggy-pine-tree-forest-dense-mood-42284-large.mp4',
+    badge: 'Cinematic'
+  },
+  {
+    id: 'stock-hologram',
+    name: 'Abstract Liquid Holographic Foil',
+    category: 'video',
+    type: 'video/mp4',
+    size: 2240000,
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-holographic-foil-waving-background-34288-large.mp4',
+    badge: 'Vaporwave'
+  },
+  {
     id: 'stock-nature',
-    name: 'Sunset Forest Stream',
+    name: 'Sunset Forest Stream Flow',
     category: 'video',
     type: 'video/mp4',
     size: 1950000,
@@ -85,7 +141,7 @@ const STOCK_LIBRARY = [
   },
   {
     id: 'stock-ocean',
-    name: 'Deep Blue Shore Waves',
+    name: 'Deep Blue Shore Wave Rolls',
     category: 'video',
     type: 'video/mp4',
     size: 2100000,
@@ -94,7 +150,7 @@ const STOCK_LIBRARY = [
   },
   {
     id: 'stock-clock',
-    name: 'Retro Vortex Spun Gears',
+    name: 'Retro Vortex Spinning Gears',
     category: 'video',
     type: 'video/mp4',
     size: 1640000,
@@ -103,7 +159,7 @@ const STOCK_LIBRARY = [
   },
   {
     id: 'stock-guitar',
-    name: 'Acoustic Folk Harmony Tune',
+    name: 'Acoustic Folk Harmony (Song 1)',
     category: 'audio',
     type: 'audio/mp3',
     size: 1450000,
@@ -111,8 +167,26 @@ const STOCK_LIBRARY = [
     badge: 'Folk Beat'
   },
   {
+    id: 'stock-corporate',
+    name: 'Uplifting Electro Corporate (Song 2)',
+    category: 'audio',
+    type: 'audio/mp3',
+    size: 1620000,
+    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    badge: 'Inspire'
+  },
+  {
+    id: 'stock-synth-sunset',
+    name: 'Synthwave Sunset Chaser (Song 3)',
+    category: 'audio',
+    type: 'audio/mp3',
+    size: 1530000,
+    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+    badge: '1984 Outrun'
+  },
+  {
     id: 'stock-ambient',
-    name: 'Chill Relaxing Drone Theme',
+    name: 'Chill Relaxing Drone Theme (Song 4)',
     category: 'audio',
     type: 'audio/mp3',
     size: 1100000,
@@ -120,13 +194,49 @@ const STOCK_LIBRARY = [
     badge: 'Ambient'
   },
   {
+    id: 'stock-orchestra',
+    name: 'Epic Orchestral Adventure (Song 5)',
+    category: 'audio',
+    type: 'audio/mp3',
+    size: 2100000,
+    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+    badge: 'Cinematic'
+  },
+  {
+    id: 'stock-clubbeat',
+    name: 'Deep Tech-House Club Mix (Song 6)',
+    category: 'audio',
+    type: 'audio/mp3',
+    size: 1980000,
+    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+    badge: 'Club Beat'
+  },
+  {
+    id: 'stock-jazz',
+    name: 'Warm Jazz Vinyl Cafe Chill (Song 7)',
+    category: 'audio',
+    type: 'audio/mp3',
+    size: 1770000,
+    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+    badge: 'Jazz beats'
+  },
+  {
     id: 'stock-lofi',
-    name: 'Lo-Fi Chillbeats Study Loop',
+    name: 'Lo-Fi Chillbeats Study Loop (Song 8)',
     category: 'audio',
     type: 'audio/mp3',
     size: 1300000,
     url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
     badge: 'Lo-Fi'
+  },
+  {
+    id: 'stock-chords',
+    name: 'Uplifting Synth Chords (Song 10)',
+    category: 'audio',
+    type: 'audio/mp3',
+    size: 1650000,
+    url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
+    badge: 'Prog Synth'
   }
 ]
 
@@ -135,14 +245,144 @@ const SFX_LIBRARY = [
   { id: 'laser', name: 'Futuristic Sci-Fi Laser Impulse', type: 'laser', badge: 'Tech Blast' },
   { id: 'glitch', name: 'Digital Data Signal Interference SFX', type: 'glitch', badge: 'Aberration' },
   { id: 'beep', name: 'Standard Studio Timing Beep Sync', type: 'beep', badge: 'Warning' },
-  { id: 'bass', name: 'Sub Bass Drop Impact Boom', type: 'bass', badge: 'Drop' }
+  { id: 'bass', name: 'Sub Bass Drop Impact Boom', type: 'bass', badge: 'Drop' },
+  { id: 'uplink', name: 'Sci-Fi Hologram Interface Ring', type: 'uplink', badge: 'Data Click' },
+  { id: 'impact', name: 'Cinematic Sub low Bass Hit', type: 'impact', badge: 'Impact Hit' },
+  { id: 'snare', name: 'Analog Retro Chiptunes Snare', type: 'snare', badge: 'Game Punch' }
 ]
 
 export default function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [isExportOpen, setIsExportOpen] = useState(false)
+  const [isDraftsOpen, setIsDraftsOpen] = useState(false)
   const [sidebarTab, setSidebarTab] = useState('media') // 'media' | 'stock' | 'inspector'
   const editor = useEditorStore()
+
+  const fileInputRef = useRef(null)
+
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const [leftWidthPercent, setLeftWidthPercent] = useState(57)
+  const splitContainerRef = useRef(null)
+  const isResizing = useRef(false)
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const handleSplitMouseDown = (e) => {
+    e.preventDefault()
+    isResizing.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    const handleMouseMove = (moveEvent) => {
+      if (!isResizing.current || !splitContainerRef.current) return
+      const rect = splitContainerRef.current.getBoundingClientRect()
+      const percentage = ((moveEvent.clientX - rect.left) / rect.width) * 100
+      setLeftWidthPercent(Math.min(75, Math.max(25, percentage)))
+    }
+
+    const handleMouseUp = () => {
+      isResizing.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  // Restore the last auto-saved session when opening the page
+  useEffect(() => {
+    const restoreLastSession = async () => {
+      try {
+        const lastProj = await db.projects.get(1)
+        if (lastProj && lastProj.data) {
+          editor.loadProject(lastProj.data)
+          console.log("Restored previous session successfully from database storage.")
+        }
+      } catch (err) {
+        console.warn("Could not restore last IndexedDB session:", err)
+      }
+    }
+    restoreLastSession()
+  }, [])
+
+  const handleSaveProject = () => {
+    try {
+      const projectData = {
+        projectName: editor.projectName,
+        currentTime: editor.currentTime,
+        media: editor.media,
+        tracks: editor.tracks
+      }
+
+      // 1. Download file from browser
+      const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${editor.projectName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_project.vfp`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      // 2. Also register in local Dexie database
+      db.projects.put({
+        id: 1,
+        name: editor.projectName,
+        data: projectData,
+        updatedAt: new Date().toISOString()
+      }).catch(err => console.error("Database save failed:", err))
+
+      alert(`📁 Saved successfully!\nProject "${editor.projectName}" is downloaded to your workstation as a .vfp project file.`)
+    } catch (err) {
+      alert(`⚠️ Save failed:\n${err.message}`)
+    }
+  }
+
+  const handleOpenProjectClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleOpenProjectFile = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result)
+        if (!parsed.tracks || !parsed.media) {
+          throw new Error("Missing active tracks or media directory in selected file.")
+        }
+
+        // Set state values inside store
+        editor.loadProject(parsed)
+
+        // Store backup in local database
+        await db.projects.put({
+          id: 1,
+          name: parsed.projectName || 'Untitled Project',
+          data: parsed,
+          updatedAt: new Date().toISOString()
+        })
+
+        alert(`🎉 Project "${parsed.projectName || 'Loaded Project'}" successfully opened!`)
+      } catch (err) {
+        alert(`❌ Failed to parse video project file:\n${err.message}`)
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   useAutosave(editor)
   usePlaybackEngine()
@@ -285,18 +525,58 @@ export default function App() {
             <span className="text-xl font-bold tracking-tight text-forge-accent font-sans select-none">
               VideoForge
             </span>
+            <span className="text-zinc-600 text-xs font-mono font-bold select-none px-0.5">/</span>
+            <input
+              type="text"
+              value={editor.projectName}
+              onChange={(e) => editor.setProjectName(e.target.value)}
+              className="bg-transparent border-b border-transparent hover:border-zinc-700 focus:border-[#6366f1] focus:outline-none text-zinc-300 text-xs font-semibold px-1 py-0.5 max-w-[150px] transition-all rounded font-sans"
+              title="Click to rename your video project"
+              placeholder="Untitled Project"
+            />
           </div>
 
           <div className="h-5 w-[1px] bg-forge-border" />
 
           <div className="flex items-center gap-2">
-            <button className="forge-btn compact-btn">
+            <button
+              type="button"
+              onClick={handleOpenProjectClick}
+              className="forge-btn compact-btn cursor-pointer hover:text-white"
+              title="Load project file (.vfp, .json) from your disk"
+            >
               <FolderOpen size={13} /> Open
             </button>
 
-            <button className="forge-btn compact-btn">
+            <button
+              type="button"
+              id="btn-drafts-manager"
+              onClick={() => {
+                playSynthSFX('beep')
+                setIsDraftsOpen(true)
+              }}
+              className="forge-btn compact-btn cursor-pointer hover:text-white text-indigo-300 border border-indigo-900/40 bg-indigo-950/20"
+              title="Switch or manage local draft projects stored in IndexedDB"
+            >
+              <FolderOpen size={13} className="text-indigo-400" /> Recent Drafts
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSaveProject}
+              className="forge-btn compact-btn cursor-pointer hover:text-white"
+              title="Save project progress and download .vfp file to your desk"
+            >
               <Save size={13} /> Save
             </button>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".vfp,.json"
+              onChange={handleOpenProjectFile}
+              className="hidden"
+            />
           </div>
         </div>
 
@@ -332,7 +612,13 @@ export default function App() {
 
       <main className="flex-1 flex flex-col overflow-hidden bg-forge-bg">
         {/* Top split representing Wondershare style workspace columns */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.14fr_0.86fr] overflow-hidden border-b border-forge-border">
+        <div 
+          ref={splitContainerRef}
+          className="flex-1 grid grid-cols-1 lg:grid"
+          style={windowWidth >= 1024 ? { 
+            gridTemplateColumns: `calc(${leftWidthPercent}% - 3px) 6px calc(${100 - leftWidthPercent}% - 3px)` 
+          } : {}}
+        >
           
           {/* Left Column: Media Bin / Assets Browser Pane */}
           <aside className="bg-forge-panel overflow-hidden flex flex-col border-r border-[#23252c]/65">
@@ -1076,6 +1362,15 @@ export default function App() {
           </div>
         </aside>
 
+        {/* Draggable vertical divider splitter */}
+        <div 
+          className="hidden lg:flex w-[6px] bg-zinc-950 hover:bg-indigo-600 active:bg-indigo-700 transition-colors cursor-col-resize z-20 shrink-0 h-full items-center justify-center group border-r border-l border-zinc-900"
+          onMouseDown={handleSplitMouseDown}
+        >
+          {/* Center drag indicators */}
+          <div className="w-[2px] h-8 bg-zinc-805 group-hover:bg-indigo-300 rounded-sm" />
+        </div>
+
         <section className="flex flex-col overflow-hidden bg-forge-bg">
           <div className="flex-1 bg-forge-bg flex items-center justify-center relative p-4 overflow-hidden">
             <div className="w-full max-w-2xl flex flex-col gap-2.5 items-center justify-center">
@@ -1172,6 +1467,8 @@ export default function App() {
             <div className="space-y-1 pt-8 relative z-10">
               {renderTrack('video1', 'Video Track 1')}
               {renderTrack('video2', 'Video Track 2')}
+              {renderTrack('video3', 'Video Track 3')}
+              {renderTrack('video4', 'Video Track 4')}
               {renderTrack('voice', 'Voice Track')}
               {renderTrack('music', 'Music Track')}
               {renderTrack('sfx', 'Sound FX')}
@@ -1191,6 +1488,7 @@ export default function App() {
 
       <HelpGuidesModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
+      <ProjectDraftsModal isOpen={isDraftsOpen} onClose={() => setIsDraftsOpen(false)} />
     </div>
   )
 }

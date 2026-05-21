@@ -37,6 +37,8 @@ const SNAP_DISTANCE = 8
 const TRACK_ORDER = [
   'video1',
   'video2',
+  'video3',
+  'video4',
   'voice',
   'music',
   'sfx',
@@ -47,6 +49,8 @@ function getTrackIcon(trackKeyName) {
   switch (trackKeyName) {
     case 'video1':
     case 'video2':
+    case 'video3':
+    case 'video4':
       return <Film size={12} className="text-zinc-400 shrink-0" />
     case 'voice':
       return <Mic size={12} className="text-zinc-400 shrink-0" />
@@ -437,45 +441,92 @@ export default function TimelineTrack({
                         deltaX: deltaTime * PIXELS_PER_SECOND
                       })
 
-                    const nextDuration =
+                    let nextDuration =
                       widthToDuration(nextWidth)
+
+                    // Apply snap features to nearby clips, markers, and playhead
+                    const state = useEditorStore.getState()
+                    if (state.playheadSnapping) {
+                      const endTime = clip.startTime + nextDuration
+                      const snapThresholdSec = 0.3
+                      const snapPoints = [state.currentTime]
+                      for (let i = 0; i <= 120; i++) snapPoints.push(i)
+                      Object.entries(state.tracks).forEach(([tk, trackClips]) => {
+                        trackClips.forEach(c => {
+                          if (c.id === clip.id) return
+                          snapPoints.push(c.startTime)
+                          snapPoints.push(c.startTime + (c.width || 170) / PIXELS_PER_SECOND)
+                        })
+                      })
+                      let closestSnap = null
+                      let minDelta = Infinity
+                      snapPoints.forEach(pt => {
+                        const delta = Math.abs(endTime - pt)
+                        if (delta < snapThresholdSec && delta < minDelta) {
+                          minDelta = delta
+                          closestSnap = pt
+                        }
+                      })
+                      if (closestSnap !== null) {
+                        nextDuration = Math.max(0.1, closestSnap - clip.startTime)
+                      }
+                    }
 
                     const trimmed = trimClipRight(
                       clip,
                       nextDuration
                     )
 
-                    setTrimPreview((previous) => ({
-                      ...previous,
-                      [clip.id]: trimmed
-                    }))
+                    useEditorStore.getState().updateClipProperties(clip.id, {
+                      width: trimmed.width,
+                      duration: trimmed.duration,
+                      startTime: trimmed.startTime,
+                      mediaStartOffset: trimmed.mediaStartOffset
+                    })
                   }}
                   onTrimLeft={(deltaTime) => {
+                    const nextStartTime = clip.startTime + deltaTime
+                    let finalStartTime = nextStartTime
+                    const state = useEditorStore.getState()
+                    if (state.playheadSnapping) {
+                      const snapThresholdSec = 0.3
+                      const snapPoints = [state.currentTime]
+                      for (let i = 0; i <= 120; i++) snapPoints.push(i)
+                      Object.entries(state.tracks).forEach(([tk, trackClips]) => {
+                        trackClips.forEach(c => {
+                          if (c.id === clip.id) return
+                          snapPoints.push(c.startTime)
+                          snapPoints.push(c.startTime + (c.width || 170) / PIXELS_PER_SECOND)
+                        })
+                      })
+                      let closestSnap = null
+                      let minDelta = Infinity
+                      snapPoints.forEach(pt => {
+                        const delta = Math.abs(nextStartTime - pt)
+                        if (delta < snapThresholdSec && delta < minDelta) {
+                          minDelta = delta
+                          closestSnap = pt
+                        }
+                      })
+                      if (closestSnap !== null) {
+                        finalStartTime = closestSnap
+                      }
+                    }
+                    const adjustedDelta = finalStartTime - clip.startTime
                     const trimmed = trimClipLeft(
                       clip,
-                      deltaTime
+                      adjustedDelta
                     )
 
-                    setTrimPreview((previous) => ({
-                      ...previous,
-                      [clip.id]: trimmed
-                    }))
+                    useEditorStore.getState().updateClipProperties(clip.id, {
+                      width: trimmed.width,
+                      duration: trimmed.duration,
+                      startTime: trimmed.startTime,
+                      mediaStartOffset: trimmed.mediaStartOffset
+                    })
                   }}
                   onTrimEnd={() => {
-                    const preview = trimPreview[clip.id]
-                    if (preview) {
-                      useEditorStore.getState().updateClipProperties(clip.id, {
-                        width: preview.width,
-                        duration: preview.duration,
-                        startTime: preview.startTime,
-                        mediaStartOffset: preview.mediaStartOffset
-                      })
-                      setTrimPreview((previous) => {
-                        const next = { ...previous }
-                        delete next[clip.id]
-                        return next
-                      })
-                    }
+                    // Committed in real-time above
                   }}
                 />
 

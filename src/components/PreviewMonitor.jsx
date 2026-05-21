@@ -11,6 +11,7 @@ import {
   Smartphone, 
   Tv 
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 
 import { useEditorStore } from '../store/editorStore'
 
@@ -95,8 +96,9 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
       videoRef.current.playbackRate = speed
     }
 
-    // Keep playhead within video bounds to prevent jumping
-    if (Math.abs(videoRef.current.currentTime - relativeTime) > 0.25) {
+    // Keep playhead within video bounds to prevent jumping. When seeking/paused, make it ultra-precise (frame-accurate scrubbing).
+    const delta = Math.abs(videoRef.current.currentTime - relativeTime)
+    if (playbackState !== 'playing' || delta > 0.15) {
       videoRef.current.currentTime = relativeTime
     }
   }, [currentTime, clipStartTime, clip])
@@ -196,19 +198,21 @@ export default function PreviewMonitor() {
   // Find active clips for major visual layers at current timestamp
   const clipV1 = getClipAtTime(tracks.video1, currentTime)
   const clipV2 = getClipAtTime(tracks.video2, currentTime)
+  const clipV3 = getClipAtTime(tracks.video3, currentTime)
+  const clipV4 = getClipAtTime(tracks.video4, currentTime)
   const clipText = getClipAtTime(tracks.text, currentTime)
 
   // Under normal view: determine the top active layer
   const topActiveClip = useMemo(() => {
-    return clipText || clipV2 || clipV1 || null
-  }, [clipText, clipV2, clipV1])
+    return clipText || clipV4 || clipV3 || clipV2 || clipV1 || null
+  }, [clipText, clipV4, clipV3, clipV2, clipV1])
 
   // Get active transitions styles
   const tStyleV1 = useMemo(() => getTransitionStyle(clipV1, currentTime), [clipV1, currentTime])
   const tStyleV2 = useMemo(() => getTransitionStyle(clipV2, currentTime), [clipV2, currentTime])
   const tStyleTop = useMemo(() => getTransitionStyle(topActiveClip, currentTime), [topActiveClip, currentTime])
 
-  const hasAnyClip = clipV1 || clipV2 || clipText
+  const hasAnyClip = clipV1 || clipV2 || clipV3 || clipV4 || clipText
 
   // Quad retro visual wave effect helper for bottom-right corner
   const [retroTicks, setRetroTicks] = useState(0)
@@ -228,8 +232,17 @@ export default function PreviewMonitor() {
         className="aspect-video w-full rounded-xl border border-forge-border bg-black flex items-center justify-center shadow-2xl relative overflow-hidden"
         id="preview-monitor-stage"
       >
-        {/* Dynamic Multi-Cam Grid Split Renderer */}
-        {splitScreenLayout === 'single' ? (
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={splitScreenLayout}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.28, ease: 'easeInOut' }}
+            className="absolute inset-0 w-full h-full"
+          >
+            {/* Dynamic Multi-Cam Grid Split Renderer */}
+            {splitScreenLayout === 'single' ? (
           /* Standard Player: top-most active layer */
           topActiveClip ? (
             <div className="absolute inset-0 w-full h-full">
@@ -377,6 +390,8 @@ export default function PreviewMonitor() {
             </div>
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Overlaid Captions / Lyrics Renderer (shows in Single standard mode to match editing tracks) */}
         {splitScreenLayout === 'single' && clipText && (

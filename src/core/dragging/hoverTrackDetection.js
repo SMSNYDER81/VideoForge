@@ -1,4 +1,4 @@
-export const TRACK_HEIGHT = 64
+export const TRACK_HEIGHT = 57
 
 export function resolveHoveredTrack(params) {
   const {

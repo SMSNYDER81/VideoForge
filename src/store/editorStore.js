@@ -25,6 +25,10 @@ const getClipTiming = (clip) => ({
 })
 
 export const getSnappedTimeAndGuide = (state, clipId, requestedTime, customWidth = null) => {
+  if (!state.playheadSnapping) {
+    return { snappedTime: Math.max(0, requestedTime), snapGuide: null }
+  }
+
   const allTracks = state.tracks
   let movingClip = null
   let currTrack = null
@@ -124,11 +128,34 @@ export const useEditorStore = create((set, get) => ({
   snapGuide: null,
   playheadSnapping: true,
 
+  setProjectName: (projectName) => set({ projectName }),
+
+  loadProject: (projectData) => set({
+    projectName: projectData.projectName || 'Untitled Project',
+    media: projectData.media || [],
+    tracks: projectData.tracks || {
+      video1: [],
+      video2: [],
+      video3: [],
+      video4: [],
+      voice: [],
+      music: [],
+      sfx: [],
+      text: []
+    },
+    currentTime: projectData.currentTime || 0,
+    selectedClip: null,
+    activeClip: null,
+    playbackState: 'paused'
+  }),
+
   togglePlayheadSnapping: () => set((state) => ({ playheadSnapping: !state.playheadSnapping })),
 
   tracks: {
     video1: [],
     video2: [],
+    video3: [],
+    video4: [],
     voice: [],
     music: [],
     sfx: [],

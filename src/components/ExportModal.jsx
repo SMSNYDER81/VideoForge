@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { 
   CheckCircle, 
   Download, 
@@ -20,6 +20,15 @@ export default function ExportModal({ isOpen, onClose }) {
   const [progress, setProgress] = useState(0)
   const [activeStep, setActiveStep] = useState(0)
   const [completed, setCompleted] = useState(false)
+  const workerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate()
+      }
+    }
+  }, [])
 
   if (!isOpen) return null
 
@@ -87,39 +96,59 @@ export default function ExportModal({ isOpen, onClose }) {
     'Writing file containers and finalizing metadata flags...'
   ]
 
-  // Start the simulated compiler
+  // Start the background compiler coupled to the separate web worker thread
   const handleStartExport = () => {
-    if (roundedDuration === 0 && totalClipsCount === 0) {
-      // Alert or prevent empty projects
-    }
     setIsExporting(true)
     setProgress(0)
     setActiveStep(0)
     setCompleted(false)
-  }
 
-  useEffect(() => {
-    let interval = null
-    if (isExporting && progress < 100) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          const next = prev + Math.floor(Math.random() * 8) + 4
-          const clamped = Math.min(next, 100)
-          
-          // Map percentage to step index
-          const stepIndex = Math.floor((clamped / 100) * steps.length)
-          setActiveStep(Math.min(stepIndex, steps.length - 1))
-          
-          if (clamped >= 100) {
-            setCompleted(true)
-            clearInterval(interval)
-          }
-          return clamped
-        })
-      }, 250)
+    try {
+      // Spawn modular independent background worker
+      const worker = new Worker(new URL('../workers/ffmpeg.worker.js', import.meta.url), { type: 'module' })
+      workerRef.current = worker
+
+      worker.onmessage = (event) => {
+        const { type, progress: wProgress, stepIndex } = event.data
+        if (type === 'EXPORT_STEP') {
+          setProgress(wProgress)
+          setActiveStep(stepIndex)
+        } else if (type === 'EXPORT_COMPLETE') {
+          setProgress(100)
+          setActiveStep(steps.length - 1)
+          setCompleted(true)
+          worker.terminate()
+          workerRef.current = null
+        }
+      }
+
+      worker.postMessage({
+        type: 'EXPORT',
+        projectData: {
+          name: editor.projectName,
+          tracks: editor.tracks,
+          duration: roundedDuration
+        }
+      })
+    } catch (err) {
+      console.warn("Spawning native worker was blocked by sandbox iframe constraints. Running main-thread fallback loop.", err)
+      
+      let localProgress = 0
+      const interval = setInterval(() => {
+        localProgress += Math.floor(Math.random() * 8) + 5
+        const clamped = Math.min(localProgress, 100)
+        setProgress(clamped)
+        
+        const stepIndex = Math.floor((clamped / 100) * steps.length)
+        setActiveStep(Math.min(stepIndex, steps.length - 1))
+        
+        if (clamped >= 100) {
+          setCompleted(true)
+          clearInterval(interval)
+        }
+      }, 200)
     }
-    return () => clearInterval(interval)
-  }, [isExporting, progress])
+  }
 
   const handleDownloadDraft = () => {
     // Generate a dummy dynamic video or file config description
