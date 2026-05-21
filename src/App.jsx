@@ -1074,114 +1074,119 @@ export default function App() {
               </div>
             )}
           </div>
-
-          <ProjectStatus />
         </aside>
 
         <section className="flex flex-col overflow-hidden bg-forge-bg">
-          <div className="flex-1 bg-forge-bg flex items-center justify-end relative p-4 pr-16 overflow-hidden">
-            <div className="w-[52%] max-w-2xl flex flex-col gap-2.5 items-center justify-center">
+          <div className="flex-1 bg-forge-bg flex items-center justify-center relative p-4 overflow-hidden">
+            <div className="w-full max-w-2xl flex flex-col gap-2.5 items-center justify-center">
               <PreviewMonitor />
               <PlaybackControls />
             </div>
           </div>
-
-          <div className="h-[320px] border-t border-forge-border bg-forge-panel overflow-hidden flex flex-col shadow-inner">
-            <div className="px-3 pt-3 pb-2 flex items-center justify-between shrink-0">
-              <h2 className="panel-title">Timeline</h2>
-
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      editor.splitSelectedClip()
-                    }}
-                    disabled={!editor.selectedClip}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 ${
-                      editor.selectedClip
-                        ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm cursor-pointer border border-indigo-500/30'
-                        : 'bg-zinc-800/40 text-zinc-650 cursor-not-allowed border border-zinc-850/10'
-                    }`}
-                    title={editor.selectedClip ? "Split selected clip at current playhead position (S)" : "Select a clip to split"}
-                    id="btn-split-clip"
-                  >
-                    <Scissors size={11} className={editor.selectedClip ? "text-indigo-200" : "text-zinc-600"} />
-                    <span>Split Clip</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleAddTextClip()
-                    }}
-                    className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 cursor-pointer bg-purple-600 hover:bg-purple-500 text-white shadow-sm border border-purple-500/30"
-                    title="Insert a customizable text overlay caption segment at current playhead"
-                    id="btn-add-text-clip"
-                  >
-                    <Type size={11} className="text-purple-200" />
-                    <span>+ Text Caption</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      editor.togglePlayheadSnapping()
-                    }}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 cursor-pointer ${
-                      editor.playheadSnapping
-                        ? 'bg-emerald-600/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/25'
-                        : 'bg-zinc-800/20 text-zinc-500 border border-zinc-800 hover:bg-zinc-805/40 hover:text-zinc-400'
-                    }`}
-                    id="btn-toggle-snapping"
-                    title={editor.playheadSnapping ? "Playhead snapping active (snaps to nearest 1s interval). Click to disable." : "Click to enable 1s playhead grid snapping."}
-                  >
-                    <Magnet size={11} className={editor.playheadSnapping ? "text-emerald-400 animate-pulse" : "text-zinc-500"} />
-                    <span>Snapping: {editor.playheadSnapping ? '1s' : 'Off'}</span>
-                  </button>
-                </div>
-
-                <div className="h-4 w-[1px] bg-forge-border" />
-
-                <div className="flex items-center gap-2 text-[10px] text-forge-muted font-mono uppercase tracking-wider hidden sm:block">
-                  Nonlinear Timeline Editing Active
-                </div>
-
-                <TimelineZoom />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-auto relative px-3 pb-4">
-              <div className="relative min-w-[2400px]">
-                <div
-                  className="absolute top-0 right-0 bottom-0 z-20"
-                  style={{
-                    left: `${TRACK_LABEL_WIDTH}px`,
-                    pointerEvents: 'none'
-                  }}
-                >
-                  <Playhead />
-                  <div style={{ pointerEvents: 'auto' }}>
-                    <TimelineRuler />
-                  </div>
-                </div>
-
-                <div className="space-y-1 pt-8 relative z-10">
-                  {renderTrack('video1', 'Video Track 1')}
-                  {renderTrack('video2', 'Video Track 2')}
-                  {renderTrack('voice', 'Voice Track')}
-                  {renderTrack('music', 'Music Track')}
-                  {renderTrack('sfx', 'Sound FX')}
-                  {renderTrack('text', 'Text / Captions')}
-                </div>
-              </div>
-            </div>
-          </div>
         </section>
       </div>
+
+      <div className="h-[320px] shrink-0 border-t border-forge-border bg-forge-panel overflow-hidden flex flex-col shadow-inner">
+        <div className="px-3 pt-3 pb-2 flex items-center justify-between shrink-0">
+          <h2 className="panel-title mb-0">Timeline</h2>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  editor.splitSelectedClip()
+                }}
+                disabled={!editor.selectedClip}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 ${
+                  editor.selectedClip
+                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm cursor-pointer border border-indigo-500/30'
+                    : 'bg-zinc-800/40 text-zinc-650 cursor-not-allowed border border-zinc-850/10'
+                }`}
+                title={editor.selectedClip ? "Split selected clip at current playhead position (S)" : "Select a clip to split"}
+                id="btn-split-clip"
+              >
+                <Scissors size={11} className={editor.selectedClip ? "text-indigo-200" : "text-zinc-600"} />
+                <span>Split Clip</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleAddTextClip()
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 cursor-pointer bg-purple-600 hover:bg-purple-500 text-white shadow-sm border border-purple-500/30"
+                title="Insert a customizable text overlay caption segment at current playhead"
+                id="btn-add-text-clip"
+              >
+                <Type size={11} className="text-purple-200" />
+                <span>+ Text Caption</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  editor.togglePlayheadSnapping()
+                }}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 cursor-pointer ${
+                  editor.playheadSnapping
+                    ? 'bg-emerald-600/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600/25'
+                    : 'bg-zinc-800/20 text-zinc-500 border border-zinc-800 hover:bg-zinc-805/40 hover:text-zinc-400'
+                }`}
+                id="btn-toggle-snapping"
+                title={editor.playheadSnapping ? "Playhead snapping active (snaps to nearest 1s interval). Click to disable." : "Click to enable 1s playhead grid snapping."}
+              >
+                <Magnet size={11} className={editor.playheadSnapping ? "text-emerald-400 animate-pulse" : "text-zinc-500"} />
+                <span>Snapping: {editor.playheadSnapping ? '1s' : 'Off'}</span>
+              </button>
+            </div>
+
+            <div className="h-4 w-[1px] bg-forge-border" />
+
+            <div className="flex items-center gap-2 text-[10px] text-forge-muted font-mono uppercase tracking-wider hidden sm:block">
+              Nonlinear Timeline Editing Active
+            </div>
+
+            <TimelineZoom />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto relative px-3 pb-4">
+          <div className="relative min-w-[2400px]">
+            <div
+              className="absolute top-0 right-0 bottom-0 z-20"
+              style={{
+                left: `${TRACK_LABEL_WIDTH}px`,
+                pointerEvents: 'none'
+              }}
+            >
+              <Playhead />
+              <div style={{ pointerEvents: 'auto' }}>
+                <TimelineRuler />
+              </div>
+            </div>
+
+            <div className="space-y-1 pt-8 relative z-10">
+              {renderTrack('video1', 'Video Track 1')}
+              {renderTrack('video2', 'Video Track 2')}
+              {renderTrack('voice', 'Voice Track')}
+              {renderTrack('music', 'Music Track')}
+              {renderTrack('sfx', 'Sound FX')}
+              {renderTrack('text', 'Text / Captions')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer className="h-8 shrink-0 bg-forge-panel border-t border-forge-border flex items-center justify-between px-4 text-xs select-none z-10">
+        <ProjectStatus />
+        <div className="text-[10px] text-zinc-500 font-mono font-medium">
+          SECURE OFFLINE DESK
+        </div>
+      </footer>
     </main>
 
       <HelpGuidesModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
