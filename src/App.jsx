@@ -35,6 +35,7 @@ import ProjectStatus from './components/ProjectStatus'
 import TimelineRuler from './components/TimelineRuler'
 import TimelineTrack from './components/TimelineTrack'
 import TimelineZoom from './components/TimelineZoom'
+import BlogSection from './components/BlogSection'
 import { useEditorStore } from './store/editorStore'
 import useAutosave from './hooks/useAutosave'
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts'
@@ -1554,6 +1555,8 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      <BlogSection />
 
       <footer className="h-8 shrink-0 bg-forge-panel border-t border-forge-border flex items-center justify-between px-4 text-xs select-none z-10">
         <ProjectStatus />
