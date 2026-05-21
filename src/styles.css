@@ -2,13 +2,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-forge-bg: #020617;
-  --color-forge-panel: #0f172a;
-  --color-forge-border: #1e293b;
+  --color-forge-bg: #090a0d;
+  --color-forge-panel: #131418;
+  --color-forge-border: #23252c;
   --color-forge-accent: #6366f1;
   --color-forge-accent-hover: #818cf8;
-  --color-forge-text: #f8fafc;
-  --color-forge-muted: #64748b;
+  --color-forge-text: #f1f3f6;
+  --color-forge-muted: #798696;
   --color-forge-narrative: #cbd5e1;
   --color-forge-mono-meta: #475569;
   

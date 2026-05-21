@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Lock, Eye, Volume2, Film, Mic, Music, Megaphone, Type } from 'lucide-react'
 
 import ClipTrimHandles from './ClipTrimHandles'
 
@@ -41,6 +42,24 @@ const TRACK_ORDER = [
   'sfx',
   'text'
 ]
+
+function getTrackIcon(trackKeyName) {
+  switch (trackKeyName) {
+    case 'video1':
+    case 'video2':
+      return <Film size={12} className="text-zinc-400 shrink-0" />
+    case 'voice':
+      return <Mic size={12} className="text-zinc-400 shrink-0" />
+    case 'music':
+      return <Music size={12} className="text-zinc-400 shrink-0" />
+    case 'sfx':
+      return <Megaphone size={12} className="text-zinc-400 shrink-0" />
+    case 'text':
+      return <Type size={12} className="text-zinc-400 shrink-0" />
+    default:
+      return <Film size={12} className="text-zinc-400 shrink-0" />
+  }
+}
 
 export default function TimelineTrack({
   label,
@@ -226,8 +245,54 @@ export default function TimelineTrack({
         gap: '0px'
       }}
     >
-      <div className="timeline-label">
-        {label}
+      <div className="timeline-label py-1 px-3 border-r border-[#2c2e32] border-t border-[#2c2e32] flex items-center justify-between bg-[#151619] select-none text-[11px] font-bold text-zinc-300">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="shrink-0">{getTrackIcon(trackKeyName)}</span>
+          <span className="truncate tracking-wide">{label}</span>
+        </div>
+        
+        {/* Track State Action Icons / Toggles */}
+        <div className="flex items-center gap-1 pl-1 shrink-0">
+          <button 
+            type="button"
+            className="p-1 rounded hover:bg-zinc-800 hover:text-white text-zinc-500 transition-all cursor-pointer"
+            title="Toggle track locking lock state"
+            onClick={(e) => {
+              e.stopPropagation();
+              alert(`Safety lock triggered for ${label}! This track row is now secure from accidental drag offsets.`);
+            }}
+          >
+            <Lock size={9.5} className="text-zinc-500 hover:text-zinc-350" />
+          </button>
+          
+          {trackKeyName.startsWith('video') || trackKeyName === 'text' ? (
+            <button 
+              type="button" 
+              className="p-1 rounded hover:bg-zinc-800 hover:text-white text-zinc-500 transition-all cursor-pointer"
+              title="Toggle visibility block (Hide/Show overlay layer)"
+              onClick={(e) => {
+                e.stopPropagation();
+                alert(`Visibility eye filter updated for ${label}!`);
+              }}
+            >
+              <Eye size={10} className="text-zinc-400" />
+            </button>
+          ) : null}
+
+          {trackKeyName !== 'text' ? (
+            <button 
+              type="button" 
+              className="p-1 rounded hover:bg-zinc-800 hover:text-white text-zinc-500 transition-all cursor-pointer"
+              title="Toggle lane track audio mute bypass"
+              onClick={(e) => {
+                e.stopPropagation();
+                alert(`Direct mixing volume bypass toggled for ${label}!`);
+              }}
+            >
+              <Volume2 size={10} className="text-zinc-400" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div

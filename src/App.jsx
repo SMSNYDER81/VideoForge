@@ -41,6 +41,18 @@ import usePlaybackEngine from './hooks/usePlaybackEngine'
 import { getMediaCategory } from './utils/mediaUtils'
 import { playSynthSFX } from './utils/sfxSynth'
 
+const FILMORA_TABS = [
+  { id: 'media', label: 'Media', icon: FolderOpen, title: 'Manage added media or drag drop files to timeline' },
+  { id: 'stock_media', label: 'Stock Media', icon: Film, title: 'Browse high quality external B-rolls loops' },
+  { id: 'audio', label: 'Audio', icon: Music, title: 'Live synthesized soundboard and SFX effects' },
+  { id: 'titles', label: 'Titles', icon: Type, title: 'Add captions and style overlay texts' },
+  { id: 'transitions', label: 'Transitions', icon: Wand2, title: 'Configure clip introduction and outro transitions' },
+  { id: 'effects', label: 'Effects', icon: Sparkles, title: 'Apply retro creative visual styling filters' },
+  { id: 'stickers', label: 'Stickers', icon: Subtitles, title: 'Simulate layout stamps and elements' },
+  { id: 'templates', label: 'Templates', icon: BookOpen, title: 'View project setup presets and FAQs' },
+  { id: 'inspector', label: 'Inspector', icon: Sliders, title: 'Edit timing schedules, name tags and mixers' }
+]
+
 const TRACK_LABEL_WIDTH = 170
 
 const STOCK_LIBRARY = [
@@ -318,124 +330,169 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 grid grid-cols-[300px_1fr] overflow-hidden bg-forge-bg">
-        <aside className="border-r border-forge-border bg-forge-panel p-3.5 overflow-hidden flex flex-col gap-4">
+      <main className="flex-1 flex flex-col overflow-hidden bg-forge-bg">
+        {/* Top split representing Wondershare style workspace columns */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.14fr_0.86fr] overflow-hidden border-b border-forge-border">
           
-          {/* High-End Sleek Tab selectors */}
-          <div className="flex gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-900/60 shrink-0">
-            <button
-              type="button"
-              onClick={() => setSidebarTab('media')}
-              className={`flex-1 py-1 px-1.5 rounded-md text-[10.5px] font-bold tracking-wide transition-all duration-120 cursor-pointer flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'media'
-                  ? 'bg-zinc-900 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900/40'
-              }`}
-              title="Drag & Drop or Upload your own device MP4 / MP3 media assets"
-            >
-              <FolderOpen size={11.5} className={sidebarTab === 'media' ? "text-indigo-400" : "text-zinc-500"} />
-              <span>Media Bin</span>
-            </button>
+          {/* Left Column: Media Bin / Assets Browser Pane */}
+          <aside className="bg-forge-panel overflow-hidden flex flex-col border-r border-[#23252c]/65">
+            
+            {/* Horizontal Filmora-Style Tabs Header */}
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-[#090a0d] border-b border-forge-border shrink-0 overflow-x-auto scrollbar-none">
+              {FILMORA_TABS.map((tab) => {
+                const Icon = tab.icon
+                const isActive = sidebarTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setSidebarTab(tab.id)}
+                    className={`flex flex-col items-center gap-1 py-1 px-2.5 text-[9.5px] font-bold tracking-tight rounded transition-all duration-120 cursor-pointer min-w-[72px] ${
+                      isActive
+                        ? 'bg-[#6366f1] text-white shadow-sm'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-805/45'
+                    }`}
+                    title={tab.title}
+                  >
+                    <Icon size={13} className={isActive ? 'text-white' : 'text-zinc-500'} />
+                    <span>{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setSidebarTab('stock')}
-              className={`flex-1 py-1 px-1.5 rounded-md text-[10.5px] font-bold tracking-wide transition-all duration-120 cursor-pointer flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'stock'
-                  ? 'bg-zinc-900 text-white shadow-sm'
-                  : 'text-zinc-450 hover:text-white hover:bg-zinc-900/40'
-              }`}
-              title="Instant royalty-free stock loops, scenic videos and synthesizers"
-            >
-              <Library size={11.5} className={sidebarTab === 'stock' ? "text-emerald-400" : "text-zinc-500"} />
-              <span>Assets</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSidebarTab('inspector')}
-              className={`flex-1 py-1 px-1.5 rounded-md text-[10.5px] font-bold tracking-wide transition-all duration-120 cursor-pointer flex items-center justify-center gap-1.5 relative ${
-                sidebarTab === 'inspector'
-                  ? 'bg-zinc-900 text-white shadow-sm'
-                  : 'text-zinc-450 hover:text-white hover:bg-zinc-900/40'
-              }`}
-              title="Timeline Clip Settings & Transitions FX"
-            >
-              <Sliders size={11.5} className={sidebarTab === 'inspector' ? "text-amber-400" : "text-zinc-500"} />
-              <span>Inspector</span>
-              {editor.selectedClip && (
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
-              )}
-            </button>
-          </div>
-
-          {/* Dynamic Sidebar panels */}
-          <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-3">
+            {/* Content pane for selected tab */}
+            <div className="flex-1 overflow-y-auto p-3.5 flex flex-col min-h-0">
             {sidebarTab === 'media' ? (
-              <div className="space-y-4 flex flex-col h-full min-h-0 justify-between">
-                <div>
-                  <h2 className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-2 font-mono">
-                    Project Media Assets
-                  </h2>
-                  <MediaDropzone onFiles={handleFiles} />
+              <div className="flex-1 flex gap-3 h-full min-h-0">
+                {/* Folder Navigation Sub-Tree Column */}
+                <div className="w-[130px] shrink-0 border-r border-[#23252c]/55 pr-3 flex flex-col gap-2 font-sans select-none">
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-indigo-400 font-mono">
+                    Foldering
+                  </div>
+                  <div className="space-y-1">
+                    <button className="w-full text-left py-1.5 px-2 bg-[#6366f1]/15 text-indigo-300 font-extrabold text-[10.5px] rounded flex items-center gap-1.5 cursor-pointer">
+                      <FolderOpen size={11} className="text-[#6366f1]" />
+                      <span>Project Media</span>
+                    </button>
+                    <button className="w-full text-left py-1.5 px-2 text-zinc-450 hover:text-white font-medium text-[10px] rounded flex items-center gap-1.5 cursor-pointer">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
+                      <span>Folder</span>
+                    </button>
+                    <button className="w-full text-left py-1.5 px-2 text-zinc-450 hover:text-white font-medium text-[10px] rounded flex items-center gap-1.5 cursor-pointer">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
+                      <span>Global Library</span>
+                    </button>
+                    <button className="w-full text-left py-1.5 px-2 text-zinc-450 hover:text-white font-medium text-[10px] rounded flex items-center gap-1.5 cursor-pointer">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
+                      <span>Cloud Storage</span>
+                    </button>
+                    <button className="w-full text-left py-1.5 px-2 text-zinc-450 hover:text-white font-medium text-[10px] rounded flex items-center gap-1.5 cursor-pointer">
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
+                      <span>Presets</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="media-bin-scroll space-y-2 flex-1 overflow-auto max-h-[290px] pr-0.5">
-                  {editor.media.length === 0 ? (
-                    <div className="text-center p-6 border border-dashed border-zinc-900 rounded-lg bg-zinc-950/20 text-zinc-650 mt-2">
-                      <p className="text-[10.5px]">No imported files yet.</p>
-                      <button 
-                        onClick={() => setSidebarTab('stock')}
-                        className="text-[9.5px] mt-1 text-indigo-400 font-bold underline cursor-pointer hover:text-indigo-300"
-                      >
-                        Browse Preloaded Library
-                      </button>
-                    </div>
-                  ) : (
-                    editor.media.map((item) => (
-                      <div
-                        key={item.id}
-                        className="media-card draggable-media compact-media-card animate-fade-in group relative"
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item.id)}
-                      >
-                        <div className="flex items-center justify-between gap-2.5">
-                          <div className="font-semibold truncate text-[11px] text-zinc-300 group-hover:text-white flex-1">
-                            {item.name}
-                          </div>
+                {/* Media File Browser Frame Column */}
+                <div className="flex-grow flex flex-col gap-3.5 min-w-0">
+                  <div>
+                    <h2 className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-1.5 font-mono flex items-center justify-between col-span-2">
+                      <span>Imported Workspace Bin</span>
+                      <span className="text-[9px] text-[#798696] font-normal font-sans">({editor.media.length} items)</span>
+                    </h2>
+                    <MediaDropzone onFiles={handleFiles} />
+                  </div>
 
-                          <span className={`media-badge text-[8.5px] uppercase font-mono px-1.5 border ${
-                            item.category === 'video' 
-                              ? 'bg-blue-950/30 text-blue-400 border-blue-900/20' 
-                              : 'bg-emerald-950/30 text-emerald-400 border-emerald-900/20'
-                          }`}>
-                            {item.category}
-                          </span>
-                        </div>
+                  <div className="media-bin-scroll flex-1 overflow-y-auto max-h-[175px] pr-0.5">
+                    {editor.media.length === 0 ? (
+                      <div className="text-center p-5 border border-dashed border-zinc-900 rounded-lg bg-zinc-950/25 text-zinc-550 min-h-[110px] flex flex-col items-center justify-center my-auto select-none">
+                        <span className="text-2xl mb-1">📂</span>
+                        <p className="text-[10.5px] font-bold text-zinc-450">No files in media bin yet.</p>
+                        <button 
+                          onClick={() => setSidebarTab('stock_media')}
+                          className="text-[9.5px] mt-1 text-indigo-400 font-bold underline cursor-pointer hover:text-indigo-300"
+                        >
+                          Use preloaded scenic loops
+                        </button>
                       </div>
-                    ))
-                  )}
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {editor.media.map((item) => (
+                          <div
+                            key={item.id}
+                            className="media-card draggable-media compact-media-card animate-fade-in group relative p-2 bg-[#1b1c21] border border-[#2c2e32] rounded hover:border-indigo-500 hover:shadow cursor-grab flex flex-col justify-between"
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, item.id)}
+                            title="Drag this clip segment down into the timeline track rows!"
+                          >
+                            <div className="font-bold truncate text-[10.5px] text-zinc-200 group-hover:text-indigo-300">
+                              {item.name}
+                            </div>
+                            <div className="flex items-center justify-between mt-1 pt-1 border-t border-zinc-900/40">
+                              <span className="text-[8px] text-zinc-500 font-mono font-medium">{(item.size / 1000000).toFixed(1)}M</span>
+                              <span className={`media-badge text-[7.5px] uppercase font-mono px-1 py-0.2 border rounded-sm font-bold ${
+                                item.category === 'video' 
+                                  ? 'bg-blue-950/30 text-blue-400 border-blue-900/10' 
+                                  : 'bg-emerald-950/30 text-emerald-400 border-emerald-900/10'
+                              }`}>
+                                {item.category}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dual Action shortcuts matching Wondershare */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-forge-border shrink-0 select-none">
+                    <button
+                      onClick={() => {
+                        handleAddTextClip();
+                        setSidebarTab('titles');
+                      }}
+                      className="flex flex-col items-center justify-center py-2 px-2 rounded bg-zinc-950/40 border border-[#23252c] hover:bg-indigo-950/20 hover:border-indigo-500/50 cursor-pointer transition-all group"
+                      title="Direct text segment creation tool"
+                    >
+                      <span className="text-base mb-0.5 group-hover:scale-110 transition-transform">✍️</span>
+                      <span className="text-[9px] font-bold text-zinc-350 group-hover:text-white">Text to Video</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        playSynthSFX('laser');
+                        alert("Screen recording initiated! Simulating real PC display capture feed in 3, 2, 1...");
+                      }}
+                      className="flex flex-col items-center justify-center py-2 px-2 rounded bg-zinc-950/40 border border-[#23252c] hover:bg-emerald-950/20 hover:border-emerald-500/50 cursor-pointer transition-all group"
+                      title="Screen record simulation with synth SFX triggers"
+                    >
+                      <span className="text-base mb-0.5 group-hover:scale-110 transition-transform">📺</span>
+                      <span className="text-[9px] font-bold text-zinc-350 group-hover:text-white">Record PC Screen</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            ) : sidebarTab === 'stock' ? (
-              <div className="space-y-4 pr-0.5">
+            ) : sidebarTab === 'stock' || sidebarTab === 'stock_media' ? (
+              <div className="space-y-4 pr-0.5 flex-grow">
                 <div>
-                  <h3 className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 mb-1.5 font-mono">
-                    Free B-Roll Scenic Loops
+                  <h3 className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 mb-2 font-mono flex items-center gap-1 leading-none select-none">
+                    <Film size={11} className="text-emerald-400" />
+                    <span>Free B-Roll Scenic loops</span>
                   </h3>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="grid grid-cols-1 gap-1.5">
                     {STOCK_LIBRARY.map((asset) => (
                       <div 
                         key={asset.id} 
-                        className="p-2 rounded-lg border border-zinc-900 bg-zinc-950/50 hover:bg-zinc-900/20 transition-all flex items-center justify-between gap-2"
+                        className="p-2 rounded border border-zinc-900 bg-zinc-950/40 hover:bg-zinc-900/10 transition-all flex items-center justify-between gap-2.5"
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="text-[11px] font-bold text-zinc-200 truncate pr-1">
+                          <div className="text-[11px] font-extrabold text-zinc-200 truncate pr-0.5">
                             {asset.name}
                           </div>
-                          <div className="text-[8.5px] text-zinc-500 font-medium flex items-center gap-1.5 mt-0.5 font-mono">
-                            <span className="px-1 py-0.2 bg-zinc-900 text-indigo-400 border border-zinc-850 rounded-sm">{asset.badge}</span>
-                            <span className="truncate">Est: {(asset.size / 1000000).toFixed(1)}MB • {asset.category}</span>
+                          <div className="text-[8.5px] text-zinc-505 font-medium flex items-center gap-1.5 mt-0.5 font-mono">
+                            <span className="px-1 bg-zinc-90 w-fit text-indigo-400 border border-zinc-850 rounded-sm">{asset.badge}</span>
+                            <span>{(asset.size / 1000000).toFixed(1)}MB • {asset.category}</span>
                           </div>
                         </div>
 
@@ -450,11 +507,10 @@ export default function App() {
                               category: asset.category,
                               url: asset.url
                             });
-                            // Optional synth alert tone when successfully imported
                             playSynthSFX('beep');
                           }}
-                          className="p-1 px-2 rounded bg-indigo-950 hover:bg-indigo-900 font-bold text-[9px] text-indigo-300 hover:text-white border border-indigo-900/30 cursor-pointer transition-all flex items-center gap-1 whitespace-nowrap"
-                          title="Import loop into project media bin, allowing easy drag drop onto timeline segments"
+                          className="p-1 px-2 rounded bg-indigo-950 hover:bg-indigo-900 font-bold text-[9px] text-indigo-300 hover:text-white border border-indigo-900/30 cursor-pointer transition-all flex items-center gap-0.5 whitespace-nowrap"
+                          title="Import loop to media workspace"
                         >
                           <Plus size={10} />
                           <span>Import</span>
@@ -463,109 +519,457 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-
-                {/* Interactive SFX Synthesizer soundboard */}
-                <div>
-                  <div className="flex items-center gap-1 mb-1.5">
-                    <Sparkles size={11} className="text-emerald-400" />
-                    <h3 className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 font-mono">
-                      SFX Soundboard Synthesizers
-                    </h3>
-                  </div>
-                  <div className="bg-zinc-900/25 border border-zinc-900 rounded-lg p-2.5 space-y-2">
-                    <p className="text-[9px] text-zinc-500 leading-normal">
-                      Click the play trigger to audibly synthesize sound effects in real-time, or import them directly.
-                    </p>
-                    <div className="space-y-1.5">
-                      {SFX_LIBRARY.map((sfx) => (
-                        <div 
-                          key={sfx.id}
-                          className="flex items-center justify-between gap-2 p-1.5 rounded bg-zinc-950/70 hover:bg-zinc-950 border border-zinc-900/50"
-                        >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <button
-                              type="button"
-                              onClick={() => playSynthSFX(sfx.type)}
-                              className="p-1 rounded bg-indigo-900/20 text-indigo-400 border border-indigo-900/30 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer flex items-center justify-center"
-                              title="Test synth sound frequency live in audio output"
-                            >
-                              <Play size={10} fill="currentColor" />
-                            </button>
-                            <span className="text-[10px] font-bold text-zinc-300 truncate">{sfx.name}</span>
-                          </div>
-
+              </div>
+            ) : sidebarTab === 'audio' ? (
+              <div className="space-y-3.5 pr-0.5 flex-grow">
+                <div className="flex items-center gap-1">
+                  <Music size={11.5} className="text-emerald-400" />
+                  <h3 className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 font-mono">
+                    SFX Soundboard Synthesizers
+                  </h3>
+                </div>
+                <div className="bg-zinc-950/20 border border-zinc-900 rounded p-2.5 space-y-2">
+                  <p className="text-[9px] text-zinc-500 leading-normal select-none">
+                    Test frequency tones audibly in live speakers or import segment into project media.
+                  </p>
+                  <div className="space-y-1.5">
+                    {SFX_LIBRARY.map((sfx) => (
+                      <div 
+                        key={sfx.id}
+                        className="flex items-center justify-between gap-2 p-1.5 rounded bg-zinc-950/60 hover:bg-zinc-950 border border-zinc-900/30"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
                           <button
                             type="button"
-                            onClick={() => {
-                              // We use custom type to describe synthesized clips
-                              editor.addMedia({
-                                id: 'sfx-' + sfx.id + '-' + crypto.randomUUID().slice(0, 4),
-                                name: sfx.name,
-                                type: 'audio/' + sfx.type,
-                                size: 50,
-                                category: 'audio',
-                                url: sfx.type
-                              });
-                              playSynthSFX('beep');
-                            }}
-                            className="p-1 px-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-[9px] font-bold border border-zinc-850 cursor-pointer transition-all shrink-0 flex items-center gap-1"
+                            onClick={() => playSynthSFX(sfx.type)}
+                            className="p-1 rounded bg-indigo-900/15 text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                            title="Test sound pitch"
                           >
-                            <Plus size={8} />
-                            <span>Bin</span>
+                            <Play size={10} fill="currentColor" />
                           </button>
+                          <span className="text-[10px] font-bold text-zinc-300 truncate">{sfx.name}</span>
                         </div>
-                      ))}
-                    </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            editor.addMedia({
+                              id: 'sfx-' + sfx.id + '-' + crypto.randomUUID().slice(0, 4),
+                              name: sfx.name,
+                              type: 'audio/' + sfx.type,
+                              size: 50,
+                              category: 'audio',
+                              url: sfx.type
+                            });
+                            playSynthSFX('beep');
+                          }}
+                          className="p-1 px-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-405 hover:text-white text-[9px] font-bold border border-zinc-850 cursor-pointer transition-all flex items-center gap-0.5"
+                        >
+                          <Plus size={8} />
+                          <span>Bin</span>
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
+            ) : sidebarTab === 'titles' ? (
+              <div className="space-y-3.5 pr-0.5 flex-grow">
+                <div>
+                  <h3 className="text-[10px] uppercase font-bold tracking-wider text-purple-400 mb-2 font-mono flex items-center gap-1">
+                    <Type size={11.5} className="text-purple-400" />
+                    <span>Subtitle Overlay Captions</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={handleAddTextClip}
+                    className="w-full py-1.5 rounded bg-purple-650 hover:bg-purple-500 text-white font-bold text-[10.5px] transition-all flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+                  >
+                    <Plus size={11} strokeWidth={2.5} />
+                    <span>Add Caption Block at Playhead</span>
+                  </button>
+                </div>
+
+                {selectedClip && selectedClipTrack === 'text' ? (
+                  <div className="p-2.5 bg-indigo-950/15 border border-indigo-900/40 rounded space-y-3">
+                    <div className="text-[9.5px] uppercase font-bold tracking-wider text-indigo-400 font-mono flex items-center gap-1 leading-none select-none">
+                      <Sliders size={11} />
+                      <span>Adjust Styled Text:</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-zinc-450 font-mono select-none">Font Family:</label>
+                      <select
+                        value={selectedClip.fontFamily || 'sans-serif'}
+                        onChange={(e) => editor.updateClipProperties(selectedClip.id, { fontFamily: e.target.value })}
+                        className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1 text-[10.5px] text-zinc-200 focus:outline-none cursor-pointer"
+                      >
+                        <option value="sans-serif">Clean Sans-Serif (Inter)</option>
+                        <option value="serif">Elegant Editorial Serif</option>
+                        <option value="mono">JetBrains Technical Mono</option>
+                        <option value="display">Space Display Grotesk</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center select-none text-[9px] font-bold text-zinc-450 font-mono">
+                        <span>Font Size:</span>
+                        <span className="text-indigo-400 font-bold">{selectedClip.fontSize || '13px'}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="40"
+                        step="1"
+                        value={parseInt(selectedClip.fontSize || '13px', 10)}
+                        onChange={(e) => editor.updateClipProperties(selectedClip.id, { fontSize: `${e.target.value}px` })}
+                        className="w-full accent-indigo-500 cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-zinc-450 font-mono select-none">Quick Palette Colors:</label>
+                      <div className="flex gap-1.5">
+                        {[
+                          { hex: '#fde047' },
+                          { hex: '#ffffff' },
+                          { hex: '#22d3ee' },
+                          { hex: '#4ade80' },
+                          { hex: '#fb7185' },
+                          { hex: '#c084fc' }
+                        ].map((col) => (
+                          <button
+                            key={col.hex}
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { textColor: col.hex })}
+                            className="w-5.5 h-5.5 rounded-full border border-zinc-950 transition-all hover:scale-110 relative cursor-pointer"
+                            style={{ backgroundColor: col.hex }}
+                          >
+                            {(selectedClip.textColor || '#fde047') === col.hex && (
+                              <span className="absolute inset-0 flex items-center justify-center text-[8px] text-zinc-950 font-black">✓</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-zinc-455 font-mono select-none">Horizontal Align Placement:</label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {[
+                          { label: 'Top Cap', val: 'top' },
+                          { label: 'Mid Screen', val: 'middle' },
+                          { label: 'Bottom Cap', val: 'bottom' }
+                        ].map((p) => (
+                          <button
+                            key={p.val}
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { textPosition: p.val })}
+                            className={`py-1 rounded text-[8.5px] uppercase font-bold tracking-tight border ${
+                              (selectedClip.textPosition || 'bottom') === p.val
+                                ? 'bg-indigo-600 border-indigo-505 text-white'
+                                : 'bg-zinc-950 text-zinc-500 border-zinc-900 hover:text-zinc-300'
+                            }`}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => editor.updateClipProperties(selectedClip.id, {
+                          textWeight: selectedClip.textWeight === 'bold' || !selectedClip.textWeight ? 'normal' : 'bold'
+                        })}
+                        className={`flex-1 py-1 rounded text-[9.5px] font-bold border font-mono transition-all cursor-pointer ${
+                          (selectedClip.textWeight || 'bold') === 'bold'
+                            ? 'bg-indigo-950/60 text-indigo-300 border-indigo-900/40'
+                            : 'bg-zinc-955 text-zinc-500 border-zinc-900'
+                        }`}
+                      >
+                        Bold Block
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => editor.updateClipProperties(selectedClip.id, {
+                          textStyle: selectedClip.textStyle === 'italic' ? 'normal' : 'italic'
+                        })}
+                        className={`flex-1 py-1 rounded text-[9.5px] font-bold border font-mono transition-all cursor-pointer ${
+                          selectedClip.textStyle === 'italic'
+                            ? 'bg-indigo-950/60 text-indigo-300 border-indigo-900/40'
+                            : 'bg-zinc-955 text-zinc-500 border-zinc-900'
+                        }`}
+                      >
+                        Italic Form
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded border border-zinc-900 bg-zinc-950/30 text-zinc-550 text-center text-[10px] italic">
+                    Select any customizable text segment on the text timeline track below to unlock real-time font overlays, colors, and layout modifiers.
+                  </div>
+                )}
+              </div>
+            ) : sidebarTab === 'transitions' ? (
+              <div className="space-y-4 pr-0.5 flex-grow">
+                <div>
+                  <h3 className="text-[10px] uppercase font-bold tracking-wider text-amber-500 mb-2 font-mono flex items-center gap-1">
+                    <Wand2 size={11.5} className="text-amber-500" />
+                    <span>Intro & Outro Transition Blends</span>
+                  </h3>
+                </div>
+
+                {selectedClip && selectedClipTrack !== 'text' ? (
+                  <div className="space-y-3.5">
+                    {/* IN */}
+                    <div className="p-2.5 bg-zinc-950/45 border border-[#23252c] rounded space-y-1.5">
+                      <div className="flex justify-between text-[9px] uppercase font-bold text-zinc-400 font-mono">
+                        <span>Intro Event Filter:</span>
+                        <span className="text-[#6366f1]">{selectedClip.transitionIn || 'none'}</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {['none', 'fade', 'slide', 'zoom', 'blur', 'glitch', 'wipe'].map((fx) => (
+                          <button
+                            key={fx}
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { transitionIn: fx })}
+                            className={`py-0.5 rounded text-[8px] uppercase font-semibold font-mono border ${
+                              (selectedClip.transitionIn || 'none') === fx
+                                ? 'bg-amber-500 text-black font-extrabold border-amber-400'
+                                : 'bg-zinc-950 text-zinc-550 border-zinc-900 hover:text-white'
+                            }`}
+                          >
+                            {fx}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* OUT */}
+                    <div className="p-2.5 bg-zinc-950/45 border border-[#23252c] rounded space-y-1.5">
+                      <div className="flex justify-between text-[9px] uppercase font-bold text-zinc-400 font-mono">
+                        <span>Outro Event Filter:</span>
+                        <span className="text-[#6366f1]">{selectedClip.transitionOut || 'none'}</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {['none', 'fade', 'slide', 'zoom', 'blur', 'glitch', 'wipe'].map((fx) => (
+                          <button
+                            key={fx}
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { transitionOut: fx })}
+                            className={`py-0.5 rounded text-[8px] uppercase font-semibold font-mono border ${
+                              (selectedClip.transitionOut || 'none') === fx
+                                ? 'bg-indigo-600 border-indigo-505 text-white'
+                                : 'bg-zinc-950 text-zinc-550 border-zinc-900 hover:text-white'
+                            }`}
+                          >
+                            {fx}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* duration */}
+                    <div className="p-2.5 bg-zinc-950/45 border border-[#23252c] rounded space-y-1.5">
+                      <div className="flex justify-between text-[9.5px] font-bold text-zinc-400 font-mono">
+                        <span>Blend Duration:</span>
+                        <span className="text-indigo-400">{selectedClip.transitionDuration || 0.6}s</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="2.0"
+                        step="0.1"
+                        value={selectedClip.transitionDuration || 0.6}
+                        onChange={(e) => editor.updateClipProperties(selectedClip.id, { transitionDuration: parseFloat(e.target.value) })}
+                        className="w-full accent-indigo-550"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded border border-zinc-900 bg-zinc-950/30 text-zinc-550 text-center text-[10px] italic">
+                    Select a placed clip on any timeline track below to toggle custom transition fades, blurs and visual glitche effects.
+                  </div>
+                )}
+              </div>
+            ) : sidebarTab === 'effects' ? (
+              <div className="space-y-4 pr-0.5 flex-grow">
+                <div>
+                  <h3 className="text-[10px] uppercase font-bold tracking-wider text-[#6366f1] mb-2 font-mono flex items-center gap-1">
+                    <Sparkles size={11.5} className="text-[#6366f1]" />
+                    <span>Color LUT Styles & Back Velocity</span>
+                  </h3>
+                </div>
+
+                {selectedClip && selectedClipTrack !== 'text' ? (
+                  <div className="space-y-3.5">
+                    {/* Filter style */}
+                    <div className="p-2.5 bg-zinc-950/45 border border-[#23252c] rounded space-y-1.5">
+                      <label className="text-[9.5px] uppercase tracking-wide font-extrabold text-[#798696] font-mono">Active LUT Gradients:</label>
+                      <select
+                        value={selectedClip.filterEffect || 'none'}
+                        onChange={(e) => editor.updateClipProperties(selectedClip.id, { filterEffect: e.target.value })}
+                        className="w-full bg-[#090a0d] border border-zinc-850 rounded px-2 py-1 text-[11px] text-zinc-200 cursor-pointer"
+                      >
+                        <option value="none">Normal (Regular Original)</option>
+                        <option value="sepia">Warm Vintage Sepia</option>
+                        <option value="grayscale">Noir Black & Indigo</option>
+                        <option value="warm">Warming Sunset Red</option>
+                        <option value="cool">Sci-Fi Arctic Cool</option>
+                        <option value="blur">Dreamy Soft Blur</option>
+                        <option value="invert">Electric Invert Filter</option>
+                        <option value="psychedelic">Psychedelic Hue Rotation</option>
+                        <option value="vhs">VHS Analog Glitch lines</option>
+                      </select>
+                    </div>
+
+                    {/* speed */}
+                    <div className="p-2.5 bg-zinc-950/45 border border-[#23252c] rounded space-y-2">
+                      <label className="text-[9.5px] uppercase tracking-wide font-extrabold text-[#798696] font-mono flex items-center gap-1">
+                        <Gauge size={11.5} className="text-pink-400" />
+                        <span>Playback Speed (Velocity):</span>
+                      </label>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[
+                          { label: '0.25x', val: 0.25 },
+                          { label: '0.5x', val: 0.5 },
+                          { label: '1.0x', val: 1.0 },
+                          { label: '1.5x', val: 1.5 },
+                          { label: '2.0x', val: 2.0 }
+                        ].map((item) => {
+                          const currSpeed = selectedClip.speed || 1.0;
+                          const isActive = currSpeed === item.val;
+                          return (
+                            <button
+                              key={item.label}
+                              type="button"
+                              onClick={() => {
+                                const oldSpeed = selectedClip.speed || 1.0;
+                                const ratio = oldSpeed / item.val;
+                                const origWidth = selectedClip.width || 170;
+                                const newWidth = Math.max(40, Math.round(origWidth * ratio));
+                                const newDuration = newWidth / 40;
+
+                                editor.updateClipProperties(selectedClip.id, { 
+                                  speed: item.val,
+                                  width: newWidth,
+                                  duration: newDuration
+                                });
+                                playSynthSFX('beep');
+                              }}
+                              className={`py-1 rounded text-[8.5px] font-bold tracking-tight font-mono cursor-pointer transition-all border ${
+                                isActive
+                                  ? 'bg-pink-650 text-white border-pink-500 font-extrabold shadow-sm'
+                                  : 'bg-zinc-950 text-zinc-500 border-zinc-900 hover:text-white'
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded border border-zinc-900 bg-zinc-950/30 text-zinc-550 text-center text-[10px] italic">
+                    Select any timeline clip below to adjust creative styling filters or playback speed multipliers.
+                  </div>
+                )}
+              </div>
+            ) : sidebarTab === 'stickers' ? (
+              <div className="space-y-3.5 pr-0.5 flex-grow">
+                <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#6366f1] font-mono">
+                  Visual Overlay Badges & Stamps
+                </h3>
+                <div className="bg-zinc-950/20 rounded border border-zinc-900 p-2.5 space-y-2">
+                  <p className="text-[9.5px] text-zinc-500 leading-normal select-none">
+                    Simulate visual stamp layers onto the active screen preview frame coordinates:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-1 select-none">
+                    {['⭐ Retro Star', '🔥 Glow Flame', '🎉 Laser Blast', '⚡ Retro Spark', '🎁 Gold Tag', '🎭 Cute Face'].map((stamp) => (
+                      <button
+                        key={stamp}
+                        onClick={() => {
+                          playSynthSFX('glitch');
+                          alert(`Overlay Stamp "${stamp}" triggered! Transferred elements matrix onto rendering pipeline monitor...`);
+                        }}
+                        className="py-1.5 px-2 border border-[#2c2e32] bg-zinc-950/40 hover:bg-[#1b1c21] hover:border-indigo-500/50 rounded text-[10px] text-zinc-200 text-center font-bold cursor-pointer transition-all"
+                      >
+                        {stamp}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : sidebarTab === 'templates' ? (
+              <div className="space-y-3.5 pr-0.5 flex-grow">
+                <h3 className="text-[10px] uppercase font-bold tracking-widest text-[#6366f1] font-mono">
+                  Project Workspace Presets
+                </h3>
+                <div className="space-y-2">
+                  <div className="p-2.5 bg-zinc-950/30 border border-zinc-905 rounded select-none">
+                    <h4 className="text-[10.5px] font-bold text-zinc-300">🎥 16:9 Cinema Wide</h4>
+                    <p className="text-[9px] text-[#798696] leading-normal mt-0.5">Optimized for horizontal YouTube streaming monitors.</p>
+                  </div>
+                  <div className="p-2.5 bg-zinc-950/30 border border-zinc-905 rounded select-none">
+                    <h4 className="text-[10.5px] font-bold text-zinc-300">📱 9:16 vertical shorts</h4>
+                    <p className="text-[9px] text-[#798696] leading-normal mt-0.5">Perfect format for smartphone clips or tiktok overlays.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsHelpOpen(true)}
+                    className="w-full py-1 rounded bg-[#6366f1]/20 pb-1.5 border border-indigo-500/30 hover:border-indigo-505 text-indigo-300 font-bold text-[10.5px] cursor-pointer"
+                  >
+                    Launch Interactive Guides Portal
+                  </button>
+                </div>
+              </div>
             ) : (
-              /* Clip Inspector & Transitions Panel */
-              <div className="space-y-4 pr-0.5">
+              /* Clip Inspector & General settings */
+              <div className="space-y-4 pr-0.5 flex-grow">
                 {!selectedClip ? (
-                  <div className="bg-zinc-950/50 border border-zinc-900/40 p-5 rounded-lg text-center space-y-2.5 my-auto">
-                    <Sliders size={20} className="mx-auto text-zinc-650 opacity-40" />
-                    <h3 className="text-xs font-bold text-zinc-300">No Segment Selected</h3>
-                    <p className="text-[10px] text-zinc-500 leading-relaxed">
-                      Click directly on any placed clip in the timeline tracks below to edit its name, offset schedule, slide/zoom transitions, overlay parameters, or audio volumes.
+                  <div className="bg-zinc-950/40 border border-[#23252c] p-6 rounded text-center space-y-2.5 my-auto select-none">
+                    <Sliders size={18} className="mx-auto text-zinc-650 opacity-40" />
+                    <h3 className="text-[11.5px] font-bold text-zinc-300">No Segment Selected</h3>
+                    <p className="text-[9.5px] text-zinc-550 leading-relaxed">
+                      Click directly on any placed clip in the timeline tracks below to adjust its tag, timings, speed scales, or audio volumes.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3.5 animate-fade-in">
-                    
-                    {/* Header showing active clip status */}
-                    <div className="bg-zinc-900/40 p-2.5 border border-zinc-855 rounded-lg space-y-1">
-                      <div className="text-[8px] uppercase font-mono tracking-widest text-indigo-400 font-bold">
-                        Editing Timeline Clip
+                    {/* Active highlight */}
+                    <div className="bg-indigo-950/15 p-2.5 border border-indigo-900/30 rounded-md">
+                      <div className="text-[8px] uppercase font-mono tracking-widest text-indigo-400 font-bold select-none">
+                        Active Seg. Settings:
                       </div>
-                      <div className="text-[10.5px] font-bold text-zinc-200 truncate">
+                      <div className="text-[11px] font-bold text-zinc-200 truncate mt-0.5">
                         {selectedClip.name}
                       </div>
-                      <div className="text-[9px] text-zinc-500 font-mono">
-                        Track ID: {selectedClipTrack}
+                      <div className="text-[9px] text-zinc-500 font-mono mt-0.5 select-none">
+                        Track: {selectedClipTrack}
                       </div>
                     </div>
 
-                    {/* Metadata editor cards */}
                     <div className="space-y-3">
-                      
-                      {/* Name input */}
-                      <div className="space-y-1.5">
-                        <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono">
-                          Clip Name Tag:
+                      {/* Name tag */}
+                      <div className="space-y-1">
+                        <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono select-none">
+                          Clip Label Tag:
                         </label>
                         <input
                           type="text"
                           value={selectedClip.name}
                           onChange={(e) => editor.updateClipProperties(selectedClip.id, { name: e.target.value })}
-                          className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500/80 font-medium"
+                          className="w-full bg-[#090a0d] border border-zinc-850 rounded px-2.5 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500 font-medium"
                         />
                       </div>
 
-                      {/* Onset and offset times */}
+                      {/* Onset times */}
                       <div className="grid grid-cols-2 gap-2.5">
-                        <div className="space-y-1.5">
-                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono">
+                        <div className="space-y-1">
+                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono select-none">
                             Timeline Start:
                           </label>
                           <input
@@ -579,13 +983,13 @@ export default function App() {
                                 editor.updateClipProperties(selectedClip.id, { startTime: Math.max(0, val) })
                               }
                             }}
-                            className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500/80 font-mono font-medium"
+                            className="w-full bg-[#090a0d] border border-zinc-850 rounded px-2 py-1 text-[11px] text-white focus:outline-none font-mono font-medium"
                           />
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono">
-                            Block Width (px):
+                        <div className="space-y-1">
+                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono select-none">
+                            Width (pixels):
                           </label>
                           <input
                             type="number"
@@ -598,396 +1002,72 @@ export default function App() {
                                 editor.updateClipProperties(selectedClip.id, { width: Math.max(50, val) })
                               }
                             }}
-                            className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1 text-[11px] text-white focus:outline-none focus:border-indigo-500/80 font-mono font-medium"
+                            className="w-full bg-[#090a0d] border border-zinc-850 rounded px-2 py-1 text-[11px] text-white focus:outline-none font-mono font-medium"
                           />
                         </div>
                       </div>
 
-                      {/* Text Track Specific Caption Formatting & Alignment Options */}
-                      {selectedClipTrack === 'text' && (
-                        <div className="p-2.5 bg-indigo-950/20 border border-indigo-900 rounded-lg space-y-3.5">
-                          <div className="text-[10px] uppercase font-bold tracking-wider text-indigo-400 font-mono flex items-center gap-1 leading-none select-none">
-                            <Type size={11} className="text-indigo-400 animate-pulse" />
-                            Render Styles & Presets:
-                          </div>
-
-                          {/* Font family selects */}
-                          <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
-                              Font Face Class:
-                            </label>
-                            <select
-                              value={selectedClip.fontFamily || 'sans-serif'}
-                              onChange={(e) => editor.updateClipProperties(selectedClip.id, { fontFamily: e.target.value })}
-                              className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1.5 text-[10.5px] text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
-                            >
-                              <option value="sans-serif">Clean Sans-Serif (Inter)</option>
-                              <option value="serif">Elegant Editorial Serif</option>
-                              <option value="mono">JetBrains Technical Mono</option>
-                              <option value="display">Tech Space Grotesk</option>
-                            </select>
-                          </div>
-
-                          {/* Font size adjustment */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between select-none">
-                              <label className="text-[9px] font-bold text-zinc-400 font-mono">
-                                Font Size (pixels):
-                              </label>
-                              <span className="text-[9px] font-mono text-indigo-450 font-bold">
-                                {selectedClip.fontSize || '13px'}
-                              </span>
-                            </div>
-                            <input
-                              type="range"
-                              min="10"
-                              max="40"
-                              step="1"
-                              value={parseInt(selectedClip.fontSize || '13px', 10)}
-                              onChange={(e) => editor.updateClipProperties(selectedClip.id, { fontSize: `${e.target.value}px` })}
-                              className="w-full accent-indigo-505 cursor-pointer text-indigo-400"
-                            />
-                          </div>
-
-                          {/* Fast Color Presets picker bar row */}
-                          <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
-                              Text Hue Preset:
-                            </label>
-                            <div className="flex items-center gap-2">
-                              {[
-                                { name: 'Yellow Glow', hex: '#fde047' },
-                                { name: 'Pristine White', hex: '#ffffff' },
-                                { name: 'Ice Cyan', hex: '#22d3ee' },
-                                { name: 'Emerald Green', hex: '#4ade80' },
-                                { name: 'Rose Red', hex: '#fb7185' },
-                                { name: 'Neon Purple', hex: '#c084fc' }
-                              ].map((col) => (
-                                <button
-                                  key={col.hex}
-                                  type="button"
-                                  onClick={() => editor.updateClipProperties(selectedClip.id, { textColor: col.hex })}
-                                  className="w-5 h-5 rounded-full border border-zinc-950 transition-all hover:scale-110 active:scale-95 relative cursor-pointer"
-                                  style={{ backgroundColor: col.hex }}
-                                  title={col.name}
-                                >
-                                  {(selectedClip.textColor || '#fde047') === col.hex && (
-                                    <span className="absolute inset-0 flex items-center justify-center text-[8px] text-zinc-950 font-black">✓</span>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Exact Hex code input */}
-                          <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
-                              Custom Hex Color code:
-                            </label>
-                            <input
-                              type="text"
-                              value={selectedClip.textColor || '#fde047'}
-                              onChange={(e) => editor.updateClipProperties(selectedClip.id, { textColor: e.target.value })}
-                              className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1 text-[10.5px] text-zinc-200 focus:outline-none focus:border-indigo-500 font-mono"
-                              placeholder="#fde047"
-                            />
-                          </div>
-
-                          {/* Screen Position */}
-                          <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-zinc-400 font-mono select-none">
-                              Overlay Screen Position:
-                            </label>
-                            <div className="grid grid-cols-3 gap-1">
-                              {[
-                                { label: 'Top Cap', val: 'top' },
-                                { label: 'Mid-Screen', val: 'middle' },
-                                { label: 'Bottom Cap', val: 'bottom' }
-                              ].map((item) => (
-                                <button
-                                  key={item.val}
-                                  type="button"
-                                  onClick={() => editor.updateClipProperties(selectedClip.id, { textPosition: item.val })}
-                                  className={`py-1.5 rounded text-[8.5px] font-bold tracking-wide uppercase border font-mono cursor-pointer transition-all ${
-                                    (selectedClip.textPosition || 'bottom') === item.val
-                                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm'
-                                      : 'bg-zinc-950 text-zinc-450 border-zinc-900 hover:text-zinc-300'
-                                  }`}
-                                >
-                                  {item.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Style Modifiers */}
-                          <div className="flex gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => editor.updateClipProperties(selectedClip.id, {
-                                textWeight: selectedClip.textWeight === 'bold' || !selectedClip.textWeight ? 'normal' : 'bold'
-                              })}
-                              className={`flex-1 py-1 rounded text-[9.5px] font-bold border font-mono transition-all cursor-pointer ${
-                                (selectedClip.textWeight || 'bold') === 'bold'
-                                  ? 'bg-indigo-950/60 text-indigo-300 border-indigo-900/60'
-                                  : 'bg-zinc-950 text-zinc-500 border-zinc-900'
-                              }`}
-                            >
-                              Bold Face
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => editor.updateClipProperties(selectedClip.id, {
-                                textStyle: selectedClip.textStyle === 'italic' ? 'normal' : 'italic'
-                              })}
-                              className={`flex-1 py-1 rounded text-[9.5px] font-bold border font-mono transition-all cursor-pointer ${
-                                selectedClip.textStyle === 'italic'
-                                  ? 'bg-indigo-950/60 text-indigo-300 border-indigo-900/60'
-                                  : 'bg-zinc-950 text-zinc-500 border-zinc-900'
-                              }`}
-                            >
-                              Italic Font
-                            </button>
-                          </div>
+                      {/* Mixing Volume Gain */}
+                      <div className="p-2.5 bg-[#090a0d] border border-[#23252c] rounded space-y-2">
+                        <div className="flex justify-between items-center text-[9px] uppercase tracking-wide font-extrabold text-zinc-400 font-mono">
+                          <span className="flex items-center gap-1">
+                            <Volume2 size={10} className="text-emerald-400" />
+                            <span>Clip Mixing Volume:</span>
+                          </span>
+                          <span className="text-emerald-400">{Math.round((selectedClip.volume ?? 1.0) * 100)}%</span>
                         </div>
-                      )}
-
-                      {/* Transition FX Selectors */}
-                      {selectedClipTrack !== 'text' && (
-                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-3">
-                        
-                        {/* Transition IN selector */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1">
-                              <Wand2 size={9.5} className="text-amber-400" />
-                              Intro Transition:
-                            </span>
-                            <span className="text-[8.5px] bg-zinc-900 px-1 py-0.2 rounded font-mono text-zinc-400 uppercase font-semibold">
-                              {selectedClip.transitionIn || 'none'}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-4 gap-1">
-                            {['none', 'fade', 'slide', 'zoom', 'blur', 'glitch', 'wipe'].map((fx) => (
-                              <button
-                                key={fx}
-                                type="button"
-                                onClick={() => editor.updateClipProperties(selectedClip.id, { transitionIn: fx })}
-                                className={`px-1 py-0.5 rounded text-[8px] font-semibold transition-all cursor-pointer outline-none uppercase font-mono ${
-                                  (selectedClip.transitionIn || 'none') === fx
-                                    ? 'bg-amber-500 text-black font-bold border border-amber-400'
-                                    : 'bg-zinc-950 text-zinc-500 hover:text-white hover:bg-zinc-900/60 border border-zinc-900'
-                                }`}
-                                title={`Apply ${fx} intro transition filter effect`}
-                              >
-                                {fx}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Transition OUT selector */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1">
-                              <Wand2 size={9.5} className="text-indigo-400 rotate-180" />
-                              Outro Transition:
-                            </span>
-                            <span className="text-[8.5px] bg-zinc-900 px-1 py-0.2 rounded font-mono text-zinc-400 uppercase font-semibold">
-                              {selectedClip.transitionOut || 'none'}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-4 gap-1">
-                            {['none', 'fade', 'slide', 'zoom', 'blur', 'glitch', 'wipe'].map((fx) => (
-                              <button
-                                key={fx}
-                                type="button"
-                                onClick={() => editor.updateClipProperties(selectedClip.id, { transitionOut: fx })}
-                                className={`px-1 py-0.5 rounded text-[8px] font-semibold transition-all cursor-pointer outline-none uppercase font-mono ${
-                                  (selectedClip.transitionOut || 'none') === fx
-                                    ? 'bg-indigo-600 text-white font-bold border border-indigo-500/30 shadow'
-                                    : 'bg-zinc-950 text-zinc-500 hover:text-white hover:bg-zinc-900/60 border border-zinc-900'
-                                }`}
-                                title={`Apply ${fx} outro transition filter effect`}
-                              >
-                                {fx}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Transition duration */}
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9.5px] font-bold text-zinc-400 font-mono">
-                              FX Blend Duration:
-                            </span>
-                            <span className="text-[9.5px] font-mono text-indigo-400 font-bold">
-                              {selectedClip.transitionDuration || 0.6}s
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            min="0.1"
-                            max="2.0"
-                            step="0.1"
-                            value={selectedClip.transitionDuration || 0.6}
-                            onChange={(e) => editor.updateClipProperties(selectedClip.id, { transitionDuration: parseFloat(e.target.value) })}
-                            className="w-full accent-indigo-500"
-                          />
-                        </div>
-                      </div>
-                      )}
-
-                      {/* Audio & Volume Control Section */}
-                      {selectedClip && selectedClipTrack && (
-                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1">
-                              <Volume2 size={10.5} className="text-emerald-400" />
-                              Clip Volume:
-                            </span>
-                            <span className="text-[9.5px] font-mono text-emerald-400 font-bold">
-                              {Math.round((selectedClip.volume ?? 1.0) * 100)}%
-                            </span>
-                          </div>
-
-                          <input
-                            type="range"
-                            min="0"
-                            max="1.5"
-                            step="0.05"
-                            value={selectedClip.volume ?? 1.0}
-                            onChange={(e) => editor.updateClipProperties(selectedClip.id, { volume: parseFloat(e.target.value) })}
-                            className="w-full accent-emerald-500 cursor-pointer"
-                            title="Adjust audio mixing volume gain (default 100%, boost up to 150%)"
-                          />
-
-                          <div className="flex gap-1.5 justify-between">
-                            <button
-                              type="button"
-                              onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 0.0 })}
-                              className="flex-1 py-0.5 rounded bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-850 text-[8px] font-mono hover:text-white cursor-pointer select-none"
-                            >
-                              MUTE
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 0.5 })}
-                              className="flex-1 py-0.5 rounded bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-850 text-[8px] font-mono hover:text-white cursor-pointer select-none"
-                            >
-                              50%
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 1.0 })}
-                              className="flex-1 py-0.5 rounded bg-zinc-950 hover:bg-zinc-900 text-zinc-400 border border-zinc-850 text-[8px] font-mono hover:text-white cursor-pointer select-none"
-                            >
-                              100%
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Visual Filter Selector Section */}
-                      {selectedClip && selectedClipTrack && (selectedClipTrack.startsWith('video') || selectedClip.type?.startsWith('image') || selectedClip.type?.startsWith('video')) && (
-                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-2">
-                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1.5 select-none">
-                            <Sparkles size={11} className="text-indigo-400" />
-                            Visual Filter Style:
-                          </label>
-                          <select
-                            value={selectedClip.filterEffect || 'none'}
-                            onChange={(e) => editor.updateClipProperties(selectedClip.id, { filterEffect: e.target.value })}
-                            className="w-full bg-zinc-950 border border-zinc-850 rounded px-2 py-1.5 text-[11px] text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                        <input
+                          type="range"
+                          min="0"
+                          max="1.5"
+                          step="0.05"
+                          value={selectedClip.volume ?? 1.0}
+                          onChange={(e) => editor.updateClipProperties(selectedClip.id, { volume: parseFloat(e.target.value) })}
+                          className="w-full accent-emerald-500 cursor-pointer"
+                        />
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 0.0 })}
+                            className="flex-1 py-0.5 bg-zinc-950 hover:bg-zinc-900 text-[8px] text-zinc-400 border border-zinc-850 rounded font-mono"
                           >
-                            <option value="none">Normal (No Filter)</option>
-                            <option value="sepia">Vintage Sepia</option>
-                            <option value="grayscale">Classic Noir Black & Blue</option>
-                            <option value="warm">Warming Golden Sunset</option>
-                            <option value="cool">Cooling Nordic Sci-Fi</option>
-                            <option value="blur">Dreamy Gaussian Blur</option>
-                            <option value="invert">Inverted Color Neon</option>
-                            <option value="psychedelic">Psychedelic Hue-Cycle</option>
-                            <option value="vhs">CRT Analog VHS Glitch Retro</option>
-                          </select>
+                            MUTE
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 0.5 })}
+                            className="flex-1 py-0.5 bg-zinc-950 hover:bg-zinc-900 text-[8px] text-zinc-400 border border-zinc-850 rounded font-mono"
+                          >
+                            50%
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.updateClipProperties(selectedClip.id, { volume: 1.0 })}
+                            className="flex-1 py-0.5 bg-zinc-950 hover:bg-zinc-900 text-[8px] text-zinc-400 border border-zinc-850 rounded font-mono"
+                          >
+                            100%
+                          </button>
                         </div>
-                      )}
-
-                      {/* Playback Speed Multiplier Panel */}
-                      {selectedClip && selectedClipTrack && selectedClipTrack !== 'text' && (
-                        <div className="p-2.5 bg-zinc-900/10 border border-zinc-900 rounded-lg space-y-2">
-                          <label className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider font-mono flex items-center gap-1.5 select-none">
-                            <Gauge size={11} className="text-pink-400" />
-                            Playback Velocity Speed:
-                          </label>
-
-                          <div className="grid grid-cols-5 gap-1">
-                            {[
-                              { label: '0.25x', val: 0.25 },
-                              { label: '0.5x', val: 0.5 },
-                              { label: '1.0x', val: 1.0 },
-                              { label: '1.5x', val: 1.5 },
-                              { label: '2.0x', val: 2.0 }
-                            ].map((item) => {
-                              const currSpeed = selectedClip.speed || 1.0;
-                              const isActive = currSpeed === item.val;
-                              return (
-                                <button
-                                  key={item.label}
-                                  type="button"
-                                  onClick={() => {
-                                    const oldSpeed = selectedClip.speed || 1.0;
-                                    const newSpeed = item.val;
-                                    const ratio = oldSpeed / newSpeed;
-                                    const origWidth = selectedClip.width || 170;
-                                    // Scale width and truncate/round
-                                    const newWidth = Math.max(40, Math.round(origWidth * ratio));
-                                    const newDuration = newWidth / 40;
-
-                                    editor.updateClipProperties(selectedClip.id, { 
-                                      speed: newSpeed,
-                                      width: newWidth,
-                                      duration: newDuration
-                                    });
-                                    playSynthSFX('beep');
-                                  }}
-                                  className={`py-1 rounded text-[8.5px] font-bold tracking-tight font-mono outline-none cursor-pointer transition-all ${
-                                    isActive
-                                      ? 'bg-pink-600 text-white font-black border border-pink-500'
-                                      : 'bg-zinc-950 text-zinc-400 border border-zinc-900 hover:text-zinc-200'
-                                  }`}
-                                  title={`Speed factor: multiply play speed by ${item.val}`}
-                                >
-                                  {item.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Generic helpful tips */}
-                      <div className="p-2.5 rounded bg-zinc-900/20 border border-zinc-900 text-[9px] text-zinc-500 leading-normal flex items-start gap-1.5 select-none">
-                        <Info size={11} className="text-zinc-600 shrink-0 mt-0.5" />
-                        <span>Transitions are rendered in real-time on your primary preview monitor depending on playhead coordinates. No wait, no lags!</span>
                       </div>
 
-                      {/* Delete Selected Clip */}
+                      {/* Tips details */}
+                      <div className="p-2.5 rounded bg-zinc-90 w bg-zinc-950/30 border border-zinc-905 text-[9px] text-zinc-550 leading-normal flex items-start gap-1 select-none">
+                        <Info size={11} className="text-zinc-650 shrink-0 mt-0.5" />
+                        <span>Timings sync immediately in non-linear preview grids during drag-handling.</span>
+                      </div>
+
+                      {/* Delete button */}
                       <button
                         type="button"
                         onClick={() => {
                           editor.removeClip(selectedClipTrack, selectedClip.id);
                           playSynthSFX('glitch');
                         }}
-                        className="w-full py-1.5 rounded border border-red-500/20 hover:border-red-500/40 bg-red-950/10 hover:bg-red-950/20 text-red-400 text-[10.5px] font-bold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1"
+                        className="w-full py-1.5 rounded border border-red-500/25 bg-red-955/15 hover:bg-red-950/30 text-red-400 font-bold text-[10.5px] uppercase tracking-wide cursor-pointer transition-all flex items-center justify-center gap-1.5"
                       >
                         <Trash2 size={11} />
-                        <span>Delete Asset Segment</span>
+                        <span>Delete Clip Segment</span>
                       </button>
-
                     </div>
                   </div>
                 )}
@@ -1101,7 +1181,8 @@ export default function App() {
             </div>
           </div>
         </section>
-      </main>
+      </div>
+    </main>
 
       <HelpGuidesModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
