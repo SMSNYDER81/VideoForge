@@ -3,7 +3,9 @@ import {
   Play,
   SkipBack,
   SkipForward,
-  Volume2
+  Volume2,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 
 import { useEditorStore } from '../store/editorStore'
@@ -14,6 +16,8 @@ export default function PlaybackControls() {
   const seekBy = useEditorStore((state) => state.seekBy)
   const splitScreenLayout = useEditorStore((state) => state.splitScreenLayout)
   const setSplitScreenLayout = useEditorStore((state) => state.setSplitScreenLayout)
+  const showClipNameOverlay = useEditorStore((state) => state.showClipNameOverlay)
+  const toggleClipNameOverlay = useEditorStore((state) => state.toggleClipNameOverlay)
 
   const togglePlayback = () => {
     setPlaybackState(
@@ -78,8 +82,23 @@ export default function PlaybackControls() {
         </button>
       </div>
 
-      {/* Right: Condensed Split Screen Layout Select */}
-      <div className="flex items-center gap-1.5 min-w-[120px] sm:min-w-[150px] justify-end">
+      {/* Right: Condensed Split Screen Layout Select & Clip Names Toggle */}
+      <div className="flex items-center gap-2 min-w-[120px] sm:min-w-[170px] justify-end">
+        <button
+          type="button"
+          onClick={() => toggleClipNameOverlay()}
+          className={`p-1 rounded border text-[9.5px] cursor-pointer transition-all flex items-center gap-1 font-mono font-semibold px-2 ${
+            showClipNameOverlay
+              ? 'bg-indigo-600/15 text-indigo-400 border-indigo-900/40 hover:bg-indigo-600/25'
+              : 'bg-zinc-950/90 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+          }`}
+          title={showClipNameOverlay ? "Clip names are showing in preview. Click to hide them (Note: they are editor-only and NEVER included on your finished export!)." : "Clip names are hidden. Click to show them."}
+          id="btn-toggle-clip-names-overlay"
+        >
+          {showClipNameOverlay ? <Eye size={10} /> : <EyeOff size={10} />}
+          <span className="hidden md:inline">Clip Labels</span>
+        </button>
+
         <select
           id="select-split-screen-layout"
           value={splitScreenLayout || 'single'}

@@ -258,6 +258,150 @@ export default function App() {
   const [sidebarTab, setSidebarTab] = useState('media') // 'media' | 'stock' | 'inspector'
   const editor = useEditorStore()
 
+  // AI Forge Engine panel state declarations
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [aiMode, setAiMode] = useState('image') // 'image' | 'voiceover' | 'script'
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState(null)
+  const [aiLoadingMessage, setAiLoadingMessage] = useState('')
+
+  const handleForgeAI = async (e) => {
+    e.preventDefault()
+    if (!aiPrompt.trim()) return
+
+    setAiLoading(true)
+    setAiError(null)
+
+    const messages = {
+      image: [
+        "Connecting with Gemini 2.5 Image...",
+        "Structuring scenic b-roll depth...",
+        "Rendering image pixels at 16:9...",
+        "Finalizing visual composition..."
+      ],
+      voiceover: [
+        "Synthesizing speech frequencies...",
+        "Modulating voice pitch harmonics...",
+        "Streaming back synthesized WAV..."
+      ],
+      script: [
+        "Prompting Gemini 3.5-Flash...",
+        "Generating timed plot timelines...",
+        "Composing subtitle schema cards..."
+      ]
+    }[aiMode] || ["Powering AI Forge engine..."]
+
+    let msgIndex = 0
+    setAiLoadingMessage(messages[0])
+    const interval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % messages.length
+      setAiLoadingMessage(messages[msgIndex])
+    }, 1800)
+
+    try {
+      const resp = await fetch('/api/ai-forge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: aiMode,
+          prompt: aiPrompt
+        })
+      })
+
+      const result = await resp.json()
+      clearInterval(interval)
+
+      if (!resp.ok || !result.success) {
+        throw new Error(result.error || "An error occurred during Gemini AI code orchestration.")
+      }
+
+      playSynthSFX('beep')
+
+      if (aiMode === 'image') {
+        const newMediaId = 'ai-img-' + crypto.randomUUID().slice(0, 6)
+        const newItem = {
+          id: newMediaId,
+          name: result.name || aiPrompt,
+          type: 'image/png',
+          size: 780000,
+          category: 'video',
+          url: result.url
+        }
+        editor.addMedia(newItem)
+        
+        editor.addClipToTrack('video1', {
+          id: crypto.randomUUID(),
+          mediaId: newMediaId,
+          name: newItem.name,
+          type: newItem.type,
+          url: newItem.url,
+          width: 170, 
+          startTime: editor.currentTime
+        })
+
+        setAiPrompt('')
+      } else if (aiMode === 'voiceover') {
+        const newMediaId = 'ai-vox-' + crypto.randomUUID().slice(0, 6)
+        const newItem = {
+          id: newMediaId,
+          name: result.name || "VO: " + aiPrompt,
+          type: 'audio/wav',
+          size: 320000,
+          category: 'audio',
+          url: result.url
+        }
+        editor.addMedia(newItem)
+
+        editor.addClipToTrack('voice', {
+          id: crypto.randomUUID(),
+          mediaId: newMediaId,
+          name: newItem.name,
+          type: newItem.type,
+          url: newItem.url,
+          width: 175,
+          startTime: editor.currentTime
+        })
+
+        setAiPrompt('')
+      } else if (aiMode === 'script') {
+        const scriptItems = result.script || []
+        
+        if (scriptItems.length === 0) {
+          throw new Error("Gemini returned empty storyboard subtitle arrays.")
+        }
+
+        scriptItems.forEach((cap, i) => {
+          editor.addClipToTrack('text', {
+            id: crypto.randomUUID(),
+            mediaId: 'ai-story-' + crypto.randomUUID().slice(0, 4),
+            name: cap.text,
+            type: 'text/plain',
+            url: '',
+            width: (cap.duration || 3) * 40,
+            startTime: editor.currentTime + (cap.time || (i * 4)),
+            textColor: '#fde047',
+            fontSize: '13px',
+            fontFamily: 'sans-serif',
+            textBgColor: 'rgba(0,0,0,0.8)',
+            textPosition: 'bottom',
+            textWeight: 'bold',
+            textStyle: 'normal'
+          })
+        })
+
+        setSidebarTab('titles')
+        setAiPrompt('')
+      }
+    } catch (err) {
+      clearInterval(interval)
+      setAiError(err.message)
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
   const fileInputRef = useRef(null)
 
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -732,31 +876,95 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* Dual Action shortcuts matching Wondershare */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-forge-border shrink-0 select-none">
-                    <button
-                      onClick={() => {
-                        handleAddTextClip();
-                        setSidebarTab('titles');
-                      }}
-                      className="flex flex-col items-center justify-center py-2 px-2 rounded bg-zinc-950/40 border border-[#23252c] hover:bg-indigo-950/20 hover:border-indigo-500/50 cursor-pointer transition-all group"
-                      title="Direct text segment creation tool"
-                    >
-                      <span className="text-base mb-0.5 group-hover:scale-110 transition-transform">✍️</span>
-                      <span className="text-[9px] font-bold text-zinc-350 group-hover:text-white">Text to Video</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        playSynthSFX('laser');
-                        alert("Screen recording initiated! Simulating real PC display capture feed in 3, 2, 1...");
-                      }}
-                      className="flex flex-col items-center justify-center py-2 px-2 rounded bg-zinc-950/40 border border-[#23252c] hover:bg-emerald-950/20 hover:border-emerald-500/50 cursor-pointer transition-all group"
-                      title="Screen record simulation with synth SFX triggers"
-                    >
-                      <span className="text-base mb-0.5 group-hover:scale-110 transition-transform">📺</span>
-                      <span className="text-[9px] font-bold text-zinc-350 group-hover:text-white">Record PC Screen</span>
-                    </button>
+                  {/* ✨ Platform Gemini AI Forge Container */}
+                  <div className="pt-3 border-t border-forge-border shrink-0 select-none">
+                    <div className="flex items-center gap-1 mb-1.5">
+                      <span className="text-xs">✨</span>
+                      <h3 className="text-[10px] uppercase font-bold tracking-widest text-indigo-455 text-indigo-400 font-mono">
+                        Gemini AI Media Forge
+                      </h3>
+                    </div>
+
+                    <div className="bg-[#101115] border border-zinc-850/60 rounded-lg p-2 flex flex-col gap-2">
+                      {/* AI Mode Selector Pill Bars */}
+                      <div className="grid grid-cols-3 gap-1">
+                        {[
+                          { id: 'image', label: '🎨 Image' },
+                          { id: 'voiceover', label: '🗣️ Voice' },
+                          { id: 'script', label: '🎬 Script' }
+                        ].map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => {
+                              setAiMode(m.id)
+                              setAiError(null)
+                            }}
+                            className={`py-1 rounded text-[8.5px] font-bold border transition-all cursor-pointer text-center ${
+                              aiMode === m.id
+                                ? 'bg-indigo-650 border-[#4f46e5]/40 text-white'
+                                : 'bg-[#15161c] text-zinc-400 border-zinc-900/60 hover:text-zinc-200'
+                            }`}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Display Mode Prompt Box */}
+                      <form onSubmit={handleForgeAI} className="space-y-1.5">
+                        <div className="relative">
+                          <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            rows={1}
+                            placeholder={
+                              aiMode === 'image'
+                                ? "Describe a b-roll scene details..."
+                                : aiMode === 'voiceover'
+                                ? "Text line for Gemini to read out loud..."
+                                : "A video topic for a storyboard..."
+                            }
+                            disabled={aiLoading}
+                            className="w-full bg-[#15161c]/90 border border-zinc-850 focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5] rounded p-1.5 text-[10px] text-zinc-100 placeholder-zinc-600 focus:outline-none transition-all resize-none font-sans"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleForgeAI(e);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Interactive Alerts or Progress lines */}
+                        {aiLoading ? (
+                          <div className="flex items-center gap-1.5 py-1 px-1.5 rounded bg-indigo-950/25 border border-indigo-900/30 text-[8.5px] text-indigo-300">
+                            <span className="w-2.5 h-2.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                            <span className="font-mono animate-pulse">{aiLoadingMessage}</span>
+                          </div>
+                        ) : aiError ? (
+                          <div className="p-1.5 rounded bg-red-955/25 border border-red-900/30 text-[8.5px] text-red-400 font-sans leading-normal">
+                            <span className="opacity-95">{aiError}</span>
+                          </div>
+                        ) : null}
+
+                        {/* Submit Action Button */}
+                        <button
+                          type="submit"
+                          disabled={aiLoading || !aiPrompt.trim()}
+                          className="w-full py-1 cursor-pointer rounded bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-900 disabled:text-zinc-600 disabled:border-zinc-950 font-bold text-[9px] text-white transition-all flex items-center justify-center gap-0.5 shadow-sm border border-indigo-505/10"
+                        >
+                          {aiLoading ? (
+                            <span>Forging Asset...</span>
+                          ) : (
+                            <>
+                              <span>✨</span>
+                              <span>Forge AI {aiMode === 'image' ? 'Image B-Roll' : aiMode === 'voiceover' ? 'Voiceover Track' : 'Storyboard Script'}</span>
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>

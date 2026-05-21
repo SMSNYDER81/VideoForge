@@ -147,8 +147,10 @@ export const useEditorStore = create((set, get) => ({
   currentTime: 0,
   snapGuide: null,
   playheadSnapping: true,
+  showClipNameOverlay: true,
 
   setProjectName: (projectName) => set({ projectName }),
+  toggleClipNameOverlay: () => set((state) => ({ showClipNameOverlay: !state.showClipNameOverlay })),
 
   loadProject: (projectData) => set({
     projectName: projectData.projectName || 'Untitled Project',

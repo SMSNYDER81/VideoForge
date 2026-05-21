@@ -82,6 +82,7 @@ function buildStyle(type, progress) {
 
 // Individual Mini Player supporting synched playback and custom assets
 function MiniMediaRenderer({ clip, currentTime, playbackState, title, transitionStyle }) {
+  const showClipNameOverlay = useEditorStore((state) => state.showClipNameOverlay)
   const videoRef = useRef(null)
 
   const clipStartTime = clip ? (clip.startTime || 0) : 0
@@ -180,9 +181,11 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
       )}
 
       {/* Segment Tag overlay */}
-      <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded bg-black/80 border border-zinc-850/60 text-[8px] font-bold text-indigo-400 font-mono tracking-wide shadow-md">
-        {clip.name.substring(0, 16)}{clip.name.length > 16 ? '...' : ''}
-      </div>
+      {showClipNameOverlay && (
+        <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded bg-black/80 border border-zinc-850/60 text-[8px] font-bold text-indigo-400 font-mono tracking-wide shadow-md">
+          {clip.name.substring(0, 16)}{clip.name.length > 16 ? '...' : ''}
+        </div>
+      )}
     </div>
   )
 }
