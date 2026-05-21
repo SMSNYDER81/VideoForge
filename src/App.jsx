@@ -999,7 +999,7 @@ export default function App() {
         </aside>
 
         <section className="flex flex-col overflow-hidden bg-forge-bg">
-          <div className="flex-1 bg-forge-bg flex items-center justify-center relative p-4 overflow-hidden">
+          <div className="flex-1 bg-forge-bg flex items-center justify-end relative p-4 pr-16 overflow-hidden">
             <div className="w-[52%] max-w-2xl flex flex-col gap-2.5 items-center justify-center">
               <PreviewMonitor />
               <PlaybackControls />
