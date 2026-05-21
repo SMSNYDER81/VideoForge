@@ -118,6 +118,26 @@ export const getSnappedTimeAndGuide = (state, clipId, requestedTime, customWidth
 }
 
 export const useEditorStore = create((set, get) => ({
+  trackSettings: {
+    video1: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+    video2: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+    video3: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+    video4: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+    voice: { volume: 0.9, gain: 3, fadeCurve: 's-curve', fadeDuration: 1.5 },
+    music: { volume: 0.6, gain: -2, fadeCurve: 'exponential', fadeDuration: 2.0 },
+    sfx: { volume: 0.8, gain: 1, fadeCurve: 'exponential', fadeDuration: 0.8 },
+    text: { volume: 1.0, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 }
+  },
+  updateTrackSetting: (trackKey, key, value) => set((state) => ({
+    trackSettings: {
+      ...state.trackSettings,
+      [trackKey]: {
+        ...(state.trackSettings?.[trackKey] || { volume: 1.0, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 }),
+        [key]: value
+      }
+    }
+  })),
+
   projectName: 'Untitled Project',
   media: [],
   selectedClip: null,
@@ -133,6 +153,16 @@ export const useEditorStore = create((set, get) => ({
   loadProject: (projectData) => set({
     projectName: projectData.projectName || 'Untitled Project',
     media: projectData.media || [],
+    trackSettings: projectData.trackSettings || {
+      video1: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+      video2: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+      video3: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+      video4: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+      voice: { volume: 0.9, gain: 3, fadeCurve: 's-curve', fadeDuration: 1.5 },
+      music: { volume: 0.6, gain: -2, fadeCurve: 'exponential', fadeDuration: 2.0 },
+      sfx: { volume: 0.8, gain: 1, fadeCurve: 'exponential', fadeDuration: 0.8 },
+      text: { volume: 1.0, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 }
+    },
     tracks: projectData.tracks || {
       video1: [],
       video2: [],

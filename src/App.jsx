@@ -55,7 +55,7 @@ const FILMORA_TABS = [
   { id: 'inspector', label: 'Inspector', icon: Sliders, title: 'Edit timing schedules, name tags and mixers' }
 ]
 
-const TRACK_LABEL_WIDTH = 170
+const TRACK_LABEL_WIDTH = 290
 
 const STOCK_LIBRARY = [
   {
@@ -318,6 +318,7 @@ export default function App() {
         projectName: editor.projectName,
         currentTime: editor.currentTime,
         media: editor.media,
+        trackSettings: editor.trackSettings,
         tracks: editor.tracks
       }
 

@@ -336,25 +336,26 @@ body {
 
 .timeline-track {
   display: grid;
-  grid-template-columns: 170px 1fr;
+  grid-template-columns: 290px 1fr;
   gap: 0px;
   align-items: stretch;
 }
 
 .timeline-label {
-  background: #0f172a;
+  background: #0b0c0f;
   border-right: 1px solid #1e293b;
   border-top: 1px solid #1e293b;
   color: #94a3b8;
   font-size: 0.7rem;
   font-weight: 500;
   display: flex;
-  align-items: center;
-  padding-left: 0.75rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem;
 }
 
 .timeline-lane {
-  height: 52px;
+  height: 80px;
   background: #020617;
   background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.007) 1px, transparent 1px);
   background-size: 40px 100%; /* Align background grids perfectly with each 1s marker (40px) */

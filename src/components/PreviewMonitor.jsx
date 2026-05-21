@@ -158,7 +158,7 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
       {isVideo ? (
         <video
           ref={videoRef}
-          className="w-full h-full object-cover transition-opacity"
+          className="w-full h-full object-cover transition-opacity monitor-media-source"
           src={clip.url}
           muted
           preload="auto"
@@ -167,7 +167,7 @@ function MiniMediaRenderer({ clip, currentTime, playbackState, title, transition
         />
       ) : isImage ? (
         <img
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover monitor-media-source"
           src={clip.url}
           alt={clip.name}
           referrerPolicy="no-referrer"
@@ -194,6 +194,120 @@ export default function PreviewMonitor() {
   
   const splitScreenLayout = useEditorStore((state) => state.splitScreenLayout)
   const setSplitScreenLayout = useEditorStore((state) => state.setSplitScreenLayout)
+
+  const canvasRef = useRef(null)
+
+  // Detect active playhead crossing boundary
+  const crossingInfo = useMemo(() => {
+    const threshold = 0.5; // 0.5s boundary
+    for (const trackClips of Object.values(tracks)) {
+      for (const clip of trackClips) {
+        const clipDuration = (clip.width || 170) / PIXELS_PER_SECOND;
+        const clipEnd = clip.startTime + clipDuration;
+        
+        const distToStart = Math.abs(currentTime - clip.startTime);
+        const distToEnd = Math.abs(currentTime - clipEnd);
+        
+        if (distToStart < threshold) {
+          return { type: 'start', intensity: 1 - (distToStart / threshold), clip };
+        }
+        if (distToEnd < threshold) {
+          return { type: 'end', intensity: 1 - (distToEnd / threshold), clip };
+        }
+      }
+    }
+    return null;
+  }, [currentTime, tracks])
+
+  // Build dynamic real-time CSS Filter levels during crossings
+  const cssFilterString = useMemo(() => {
+    if (!crossingInfo) return 'none'
+    const intensity = crossingInfo.intensity
+    // Exposure brightness flash + saturation boost + depth contrast boost
+    return `contrast(${1 + intensity * 0.4}) brightness(${1 + intensity * 0.15}) saturate(${1 + intensity * 0.5})`
+  }, [crossingInfo])
+
+  // Canvas transition compositor loop for active playhead crossings
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animId;
+
+    const compositeDraw = () => {
+      if (crossingInfo) {
+        const sourceEl = document.querySelector('.monitor-media-source')
+        if (sourceEl) {
+          const rect = sourceEl.getBoundingClientRect()
+          if (canvas.width !== Math.ceil(rect.width) || canvas.height !== Math.ceil(rect.height)) {
+            canvas.width = Math.ceil(rect.width) || 640
+            canvas.height = Math.ceil(rect.height) || 360
+          }
+
+          const w = canvas.width
+          const h = canvas.height
+          ctx.clearRect(0, 0, w, h)
+
+          const intensity = crossingInfo.intensity;
+
+          ctx.save()
+
+          // CRT horizontal glitch slice displacement
+          const isGlitchedTransition = crossingInfo.clip?.transitionIn === 'glitch' || crossingInfo.clip?.transitionOut === 'glitch';
+          if (isGlitchedTransition || Math.random() < 0.15) {
+            const slices = 14;
+            const sliceH = h / slices;
+            for (let i = 0; i < slices; i++) {
+              const dx = (Math.sin(i * 1.8 + Date.now() / 45) * intensity * 28);
+              try {
+                ctx.drawImage(
+                  sourceEl,
+                  0, i * (sourceEl.videoHeight / slices || sliceH), sourceEl.videoWidth || w, sourceEl.videoHeight / slices || sliceH,
+                  dx, i * sliceH, w, sliceH
+                )
+              } catch (err) {}
+            }
+          } else {
+            try {
+              ctx.drawImage(sourceEl, 0, 0, w, h)
+            } catch (err) {}
+          }
+
+          // Screen composite blend for film-leak light exposure
+          ctx.globalCompositeOperation = 'screen'
+          const lx = w * 0.4 + Math.sin(Date.now() / 300) * w * 0.15
+          const ly = h * 0.45
+          const lr = Math.max(90, w * 0.45 * intensity)
+          const grad = ctx.createRadialGradient(lx, ly, 1, lx, ly, lr)
+          grad.addColorStop(0, `rgba(239, 68, 68, ${intensity * 0.75})`) // Rose leak
+          grad.addColorStop(0.4, `rgba(249, 115, 22, ${intensity * 0.45})`) // Tangerine flare
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)')
+          ctx.fillStyle = grad
+          ctx.fillRect(0, 0, w, h)
+
+          // Multiply CRT lines overlay
+          ctx.globalCompositeOperation = 'multiply'
+          ctx.fillStyle = `rgba(15, 23, 42, ${intensity * 0.22})`
+          for (let row = 0; row < h; row += 4) {
+            ctx.fillRect(0, row, w, 1.5)
+          }
+
+          ctx.restore()
+        }
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+
+      animId = requestAnimationFrame(compositeDraw)
+    }
+
+    compositeDraw()
+
+    return () => cancelAnimationFrame(animId)
+  }, [crossingInfo])
 
   // Find active clips for major visual layers at current timestamp
   const clipV1 = getClipAtTime(tracks.video1, currentTime)
@@ -232,6 +346,18 @@ export default function PreviewMonitor() {
         className="aspect-video w-full rounded-xl border border-forge-border bg-black flex items-center justify-center shadow-2xl relative overflow-hidden"
         id="preview-monitor-stage"
       >
+        {crossingInfo && (
+          <div className="absolute top-3 right-3 z-30 pointer-events-none select-none flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#ef4444] text-[#090d16] text-[9px] font-mono font-extrabold tracking-wider animate-pulse shadow-lg border border-[#f43f5e]/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping shrink-0" />
+            <span>✦ CANVAS TRANS COMPOSITE ACTIVE ({(crossingInfo.intensity * 100).toFixed(0)}%)</span>
+          </div>
+        )}
+
+        <canvas 
+          ref={canvasRef} 
+          className="absolute inset-0 w-full h-full pointer-events-none select-none z-20"
+        />
+
         <AnimatePresence mode="popLayout">
           <motion.div
             key={splitScreenLayout}
@@ -240,6 +366,7 @@ export default function PreviewMonitor() {
             exit={{ opacity: 0, scale: 1.02 }}
             transition={{ duration: 0.28, ease: 'easeInOut' }}
             className="absolute inset-0 w-full h-full"
+            style={{ filter: cssFilterString }}
           >
             {/* Dynamic Multi-Cam Grid Split Renderer */}
             {splitScreenLayout === 'single' ? (
