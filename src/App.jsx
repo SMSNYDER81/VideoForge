@@ -255,6 +255,7 @@ export default function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [isDraftsOpen, setIsDraftsOpen] = useState(false)
+  const [isNewProjectOpen, setIsNewProjectOpen] = useState(false)
   const [sidebarTab, setSidebarTab] = useState('media') // 'media' | 'stock' | 'inspector'
   const editor = useEditorStore()
 
@@ -344,6 +345,95 @@ export default function App() {
       alert(`📁 Saved successfully!\nProject "${editor.projectName}" is downloaded to your workstation as a .vfp project file.`)
     } catch (err) {
       alert(`⚠️ Save failed:\n${err.message}`)
+    }
+  }
+
+  const handleResetWorkspace = async () => {
+    try {
+      const clearedProject = {
+        projectName: 'Untitled Project',
+        currentTime: 0,
+        media: editor.media, // Keep uploaded media so they don't have to upload again
+        trackSettings: {
+          video1: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          video2: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          video3: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          video4: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          voice: { volume: 0.9, gain: 3, fadeCurve: 's-curve', fadeDuration: 1.5 },
+          music: { volume: 0.6, gain: -2, fadeCurve: 'exponential', fadeDuration: 2.0 },
+          sfx: { volume: 0.8, gain: 1, fadeCurve: 'exponential', fadeDuration: 0.8 },
+          text: { volume: 1.0, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 }
+        },
+        tracks: {
+          video1: [],
+          video2: [],
+          video3: [],
+          video4: [],
+          voice: [],
+          music: [],
+          sfx: [],
+          text: []
+        }
+      }
+
+      editor.loadProject(clearedProject)
+
+      await db.projects.put({
+        id: 1,
+        name: clearedProject.projectName,
+        data: clearedProject,
+        updatedAt: new Date().toISOString()
+      })
+
+      playSynthSFX('laser')
+      setIsNewProjectOpen(false)
+    } catch (err) {
+      alert(`⚠️ Failed to reset workspace: ${err.message}`)
+    }
+  }
+
+  const handleWipeEverything = async () => {
+    try {
+      const baseProject = {
+        projectName: 'Untitled Project',
+        currentTime: 0,
+        media: [],
+        trackSettings: {
+          video1: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          video2: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          video3: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          video4: { volume: 0.8, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 },
+          voice: { volume: 0.9, gain: 3, fadeCurve: 's-curve', fadeDuration: 1.5 },
+          music: { volume: 0.6, gain: -2, fadeCurve: 'exponential', fadeDuration: 2.0 },
+          sfx: { volume: 0.8, gain: 1, fadeCurve: 'exponential', fadeDuration: 0.8 },
+          text: { volume: 1.0, gain: 0, fadeCurve: 'linear', fadeDuration: 1.0 }
+        },
+        tracks: {
+          video1: [],
+          video2: [],
+          video3: [],
+          video4: [],
+          voice: [],
+          music: [],
+          sfx: [],
+          text: []
+        }
+      }
+
+      editor.loadProject(baseProject)
+
+      await db.projects.clear()
+      await db.projects.put({
+        id: 1,
+        name: baseProject.projectName,
+        data: baseProject,
+        updatedAt: new Date().toISOString()
+      })
+
+      playSynthSFX('laser')
+      setIsNewProjectOpen(false)
+    } catch (err) {
+      alert(`⚠️ Failed to wipe database: ${err.message}`)
     }
   }
 
@@ -560,6 +650,19 @@ export default function App() {
               title="Switch or manage local draft projects stored in IndexedDB"
             >
               <FolderOpen size={13} className="text-indigo-400" /> Recent Drafts
+            </button>
+
+            <button
+              type="button"
+              id="btn-new-project-trigger"
+              onClick={() => {
+                playSynthSFX('beep')
+                setIsNewProjectOpen(true)
+              }}
+              className="forge-btn compact-btn cursor-pointer text-rose-450 hover:text-white border border-rose-950/40 bg-rose-950/15 hover:bg-rose-900/30 hover:border-rose-600/55 transition-all text-rose-400"
+              title="Start a new blank video project and reset current cached state"
+            >
+              <Plus size={13} className="text-rose-455 text-rose-400" /> New Project
             </button>
 
             <button
@@ -1463,6 +1566,75 @@ export default function App() {
       <HelpGuidesModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />
       <ProjectDraftsModal isOpen={isDraftsOpen} onClose={() => setIsDraftsOpen(false)} />
+
+      {isNewProjectOpen && (
+        <div 
+          className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setIsNewProjectOpen(false)}
+        >
+          <div 
+            className="bg-[#13141c] border border-zinc-800 rounded-xl max-w-md w-full p-6 text-zinc-100 shadow-2xl space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-lg bg-rose-950/30 border border-rose-900/40 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-rose-455 text-rose-400" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white tracking-tight">
+                  Start New Video Project?
+                </h3>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  VideoForge auto-saves every draft offline on this computer. Select how you would like to clear the site to start fresh:
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleResetWorkspace}
+                className="w-full text-left p-3 rounded-lg border border-zinc-900 bg-[#16171e] hover:bg-[#1a1b24] hover:border-[#6366f1]/40 hover:text-white transition-all cursor-pointer group"
+                title="Clears the timeline tracks but maintains uploaded media clips"
+              >
+                <div className="text-[11px] font-bold text-zinc-250 group-hover:text-white">
+                  ✂️ Reset Timeline Tracks Only
+                </div>
+                <div className="text-[9.5px] text-zinc-550 mt-0.5 leading-normal">
+                  Clears the tracks below, playhead goes to 0s. Leaves uploaded media bin items intact so you don't need to re-upload files.
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleWipeEverything}
+                className="w-full text-left p-3 rounded-lg border border-rose-950/25 bg-[#171317] hover:bg-[#1f161b] hover:border-rose-900/45 hover:text-white transition-all cursor-pointer group"
+                title="Completely clears all drafts, timeline, and uploaded files"
+              >
+                <div className="text-[11px] font-bold text-rose-400 group-hover:text-rose-350">
+                  🔥 Wipe All Storage & Fresh Start
+                </div>
+                <div className="text-[9.5px] text-zinc-550 mt-0.5 leading-normal">
+                  Completely wipes the browser's persistent IndexedDB storage, uploaded clips library, and resets the interface.
+                </div>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1.5 border-t border-zinc-900">
+              <button
+                type="button"
+                onClick={() => {
+                  playSynthSFX('beep')
+                  setIsNewProjectOpen(false)
+                }}
+                className="py-1.5 px-3.5 rounded bg-zinc-900 hover:bg-zinc-805 text-[10.5px] font-semibold text-zinc-300 hover:text-white cursor-pointer transition-all border border-zinc-850"
+              >
+                Cancel & Keep working
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
