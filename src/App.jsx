@@ -31,6 +31,7 @@ import ProjectDraftsModal from './components/ProjectDraftsModal'
 import PlaybackControls from './components/PlaybackControls'
 import Playhead from './components/Playhead'
 import PreviewMonitor from './components/PreviewMonitor'
+import PreviewToolbar from './components/PreviewToolbar'
 import ProjectStatus from './components/ProjectStatus'
 import TimelineRuler from './components/TimelineRuler'
 import TimelineTrack from './components/TimelineTrack'
@@ -1453,6 +1454,16 @@ export default function App() {
           <div className="flex-1 bg-forge-bg flex items-center justify-center relative p-4 overflow-hidden">
             <div className="w-full max-w-2xl flex flex-col gap-2.5 items-center justify-center">
               <PreviewMonitor />
+              <PreviewToolbar onSelectTool={(toolLabel) => {
+                if (toolLabel === 'Effects') setSidebarTab('effects')
+                else if (toolLabel === 'Transitions') setSidebarTab('transitions')
+                else if (toolLabel === 'Captions') setSidebarTab('titles')
+                else if (toolLabel === 'Overlays') setSidebarTab('stock_media')
+                else if (toolLabel === 'Crop') {
+                  setSidebarTab('inspector')
+                }
+                playSynthSFX('beep')
+              }} />
               <PlaybackControls />
             </div>
           </div>
