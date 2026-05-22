@@ -38,13 +38,17 @@ async function startServer() {
     res.send("google-site-verification: googleb8fa65557eccd013.html");
   });
 
-  // Direct Sitemap and Robots.txt Routes for Search Console/Indexing Reliability
+  // Direct Sitemap, Robots.txt, and Bing Auth Routes for Search Console/Indexing Reliability
   app.get("/robots.txt", (req, res) => {
     res.sendFile(path.join(process.cwd(), "public", "robots.txt"));
   });
 
   app.get("/sitemap.xml", (req, res) => {
     res.sendFile(path.join(process.cwd(), "public", "sitemap.xml"));
+  });
+
+  app.get("/BingSiteAuth.xml", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "public", "BingSiteAuth.xml"));
   });
 
   // API Route for Gemini AI Forge features
