@@ -1,0 +1,8 @@
+# Robots.txt for VideoForge Non-Linear Online Video Editor
+# Designed for maximum indexing on Google and Bing.
+
+User-agent: *
+Allow: /
+
+# Sitemap Location
+Sitemap: https://videoforge.app/sitemap.xml

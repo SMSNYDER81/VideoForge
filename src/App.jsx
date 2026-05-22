@@ -594,7 +594,10 @@ export default function App() {
         editor.setSelectedClip(null)
       }}
     >
-      <header className="h-12 border-b border-forge-border bg-forge-panel flex items-center justify-between px-4 shrink-0 shadow-sm z-10">
+      <header 
+        className="h-12 border-b border-forge-border bg-forge-panel flex items-center justify-between px-4 shrink-0 shadow-sm z-10"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-4">
           {/* Logo & Title branding in the upper left corner */}
           <div className="flex items-center gap-2.5">
@@ -727,7 +730,10 @@ export default function App() {
         >
           
           {/* Left Column: Media Bin / Assets Browser Pane */}
-          <aside className="bg-forge-panel overflow-hidden flex flex-col border-r border-[#23252c]/65">
+          <aside 
+            className="bg-forge-panel overflow-hidden flex flex-col border-r border-[#23252c]/65"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             
             {/* Horizontal Filmora-Style Tabs Header */}
             <div className="flex items-center gap-1.5 px-3 py-2 bg-[#090a0d] border-b border-forge-border shrink-0 overflow-x-auto scrollbar-none">
@@ -1450,7 +1456,10 @@ export default function App() {
           <div className="w-[2px] h-8 bg-zinc-805 group-hover:bg-indigo-300 rounded-sm" />
         </div>
 
-        <section className="flex flex-col overflow-hidden bg-forge-bg">
+        <section 
+          className="flex flex-col overflow-hidden bg-forge-bg"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <div className="flex-1 bg-forge-bg flex items-center justify-center relative p-4 overflow-hidden">
             <div className="w-full max-w-2xl flex flex-col gap-2.5 items-center justify-center">
               <PreviewMonitor />
@@ -1470,31 +1479,15 @@ export default function App() {
         </section>
       </div>
 
-      <div className="h-[390px] shrink-0 border-t border-forge-border bg-forge-panel overflow-hidden flex flex-col shadow-inner">
+      <div 
+        className="h-[390px] shrink-0 border-t border-forge-border bg-forge-panel overflow-hidden flex flex-col shadow-inner"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className="px-3 pt-3 pb-2 flex items-center justify-between shrink-0">
           <h2 className="panel-title mb-0">Timeline</h2>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  editor.splitSelectedClip()
-                }}
-                disabled={!editor.selectedClip}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold tracking-wide transition-all duration-150 ${
-                  editor.selectedClip
-                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm cursor-pointer border border-indigo-500/30'
-                    : 'bg-zinc-800/40 text-zinc-650 cursor-not-allowed border border-zinc-850/10'
-                }`}
-                title={editor.selectedClip ? "Split selected clip at current playhead position (S)" : "Select a clip to split"}
-                id="btn-split-clip"
-              >
-                <Scissors size={11} className={editor.selectedClip ? "text-indigo-200" : "text-zinc-600"} />
-                <span>Split Clip</span>
-              </button>
-
               <button
                 type="button"
                 onClick={(e) => {

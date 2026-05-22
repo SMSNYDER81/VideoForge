@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Scissors } from 'lucide-react'
 
 import { useEditorStore } from '../store/editorStore'
 
@@ -22,6 +23,22 @@ export default function Playhead() {
 
   const playheadSnapping = useEditorStore(
     (state) => state.playheadSnapping
+  )
+
+  const selectedClip = useEditorStore(
+    (state) => state.selectedClip
+  )
+
+  const splitSelectedClip = useEditorStore(
+    (state) => state.splitSelectedClip
+  )
+
+  const tracks = useEditorStore(
+    (state) => state.tracks
+  )
+
+  const setSelectedClip = useEditorStore(
+    (state) => state.setSelectedClip
   )
 
   const smoothTime = useSmoothPlayhead(currentTime)
@@ -71,6 +88,21 @@ export default function Playhead() {
     )
   }
 
+  // Find if some clip intersects the current playhead time
+  const isAnyClipUnderPlayhead = () => {
+    const PIXELS_PER_SECOND = 40; // timing multiplier constant
+    for (const clips of Object.values(tracks)) {
+      const found = clips.find(c => {
+        const duration = (c.width || 170) / PIXELS_PER_SECOND
+        return currentTime >= c.startTime && currentTime < (c.startTime + duration)
+      })
+      if (found) return true
+    }
+    return false
+  }
+
+  const activeSplitAvailable = selectedClip || isAnyClipUnderPlayhead()
+
   return (
     <div
       ref={playheadRef}
@@ -85,9 +117,54 @@ export default function Playhead() {
         className="playhead-handle"
         style={{
           boxShadow:
-            '0 0 10px rgba(198,169,114,0.35)'
+            '0 0 10px rgba(198,169,114,0.35)',
+          pointerEvents: 'auto'
         }}
       />
+
+      {/* Built-in Playhead Split Clip scissors button */}
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.stopPropagation() // Prevents playhead drag when clicking split button
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (selectedClip) {
+            splitSelectedClip()
+          } else {
+            // Find the first clip intersecting the currentTime across any track and split it!
+            const PIXELS_PER_SECOND = 40;
+            let clipToSplit = null
+            for (const clips of Object.values(tracks)) {
+              const intersecting = clips.find(c => {
+                const duration = (c.width || 170) / PIXELS_PER_SECOND
+                return currentTime >= c.startTime && currentTime < (c.startTime + duration)
+              })
+              if (intersecting) {
+                clipToSplit = intersecting
+                break
+              }
+            }
+
+            if (clipToSplit) {
+              setSelectedClip(clipToSplit.id)
+              // Defer slightly to ensure Zustand updates before triggering split
+              setTimeout(() => {
+                splitSelectedClip()
+              }, 10)
+            }
+          }
+        }}
+        className={`absolute top-[16px] -left-[12px] w-[24px] h-[24px] rounded-full flex items-center justify-center transition-all duration-155 border pointer-events-auto shadow-[0_4px_12px_rgba(0,0,0,0.55)] ${
+          activeSplitAvailable
+            ? 'bg-rose-600 border-rose-450 text-white hover:bg-rose-500 hover:scale-115 active:scale-90 cursor-pointer'
+            : 'bg-[#1b1c21] border-[#2c2e32] text-zinc-550 hover:text-zinc-400 cursor-pointer hover:bg-zinc-800'
+        }`}
+        title={selectedClip ? "Split selected clip at current playhead position (S)" : "Click to auto-detect and split the clip directly under the playhead"}
+      >
+        <Scissors size={10} className={activeSplitAvailable ? "text-white" : "text-zinc-550"} />
+      </button>
     </div>
   )
 }
