@@ -32,6 +32,12 @@ async function startServer() {
 
   app.use(express.json({ limit: '20mb' }));
 
+  // Google Site Verification Endpoint
+  app.get("/googleb8fa65557eccd013.html", (req, res) => {
+    res.type("text/html");
+    res.send("google-site-verification: googleb8fa65557eccd013.html");
+  });
+
   // API Route for Gemini AI Forge features
   app.post("/api/ai-forge", async (req, res) => {
     try {
