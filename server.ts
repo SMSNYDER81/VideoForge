@@ -51,6 +51,10 @@ async function startServer() {
     res.sendFile(path.join(process.cwd(), "public", "BingSiteAuth.xml"));
   });
 
+  app.get("/ads.txt", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "public", "ads.txt"));
+  });
+
   // API Route for Gemini AI Forge features
   app.post("/api/ai-forge", async (req, res) => {
     try {
