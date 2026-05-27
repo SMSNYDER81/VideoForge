@@ -64,6 +64,23 @@ Essential design tips for eye-catching subtitles in VideoForge:
 3. Placement: Keep subtitles in the lower-middle portion of the screen, staying clear of social media overlay margins.
 
 Click "+ Text Caption" on the timeline controls to craft customizable subtitle cards right at the current playhead!`
+  },
+  {
+    id: 'companion-screen-forge',
+    category: 'Ecosystem',
+    title: 'Precision Capture: Splicing Screen Forge Recordings',
+    author: 'VideoForge Integration Staff',
+    readTime: '5 min read',
+    summary: 'The easiest way to capture browser sessions, tutorials, or meetings on The Screen Forge and edit them here.',
+    content: `Need background source files, high-fidelity guides, or desktop walkthrough recordings for your project? The easiest road is integrating with our sister companion capture application, The Screen Forge (https://thescreenforge.com/).
+
+Workflow execution:
+1. Launch Recorder: Click the "Screen Capture" tab in our horizontal workflow bar or click the "Screen Recorder" link in the header. Click "Launch Screen Forge" to host a capturing session on our companion platform in a side tab.
+2. Direct Screen Capture: On Screen Forge, capture standard HD screens, single browser windows, camera feeds, or custom application stages.
+3. Fetch Files: Save or export the result to your native device.
+4. Drag & Drop: Drag the downloaded file directly into our multi-track timeline below.
+
+By utilizing high-framerate hardware captures from The Screen Forge, you ensure perfectly synced cursor motions and crisp layout texts to splice seamlessly inside VideoForge.`
   }
 ]
 
@@ -134,7 +151,7 @@ export default function BlogSection() {
         <div className="flex items-center gap-2">
           <BookOpen size={14} className="text-[#6366f1] animate-pulse" />
           <span className="text-xs font-bold tracking-wider uppercase text-zinc-300 font-sans">
-            VideoForge Creator Masterclass & Production Blog (3 Articles)
+            VideoForge Creator Masterclass & Production Blog ({BLOG_ARTICLES.length} Articles)
           </span>
           {readCount > 0 && (
             <div className="flex items-center gap-1.5 ml-3 px-2 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-900/30 text-[9.5px] text-emerald-400 font-mono font-bold animate-fade-in">

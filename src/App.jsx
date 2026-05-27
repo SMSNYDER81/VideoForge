@@ -21,7 +21,10 @@ import {
   Library,
   Layers,
   Type,
-  Gauge
+  Gauge,
+  Tv,
+  Monitor,
+  ExternalLink
 } from 'lucide-react'
 
 import MediaDropzone from './components/MediaDropzone'
@@ -37,6 +40,7 @@ import TimelineRuler from './components/TimelineRuler'
 import TimelineTrack from './components/TimelineTrack'
 import TimelineZoom from './components/TimelineZoom'
 import BlogSection from './components/BlogSection'
+import ScreenCaptureTab from './components/ScreenCaptureTab'
 import { useEditorStore } from './store/editorStore'
 import useAutosave from './hooks/useAutosave'
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts'
@@ -47,6 +51,7 @@ import { db } from './storage/db'
 
 const FILMORA_TABS = [
   { id: 'media', label: 'Media', icon: FolderOpen, title: 'Manage added media or drag drop files to timeline' },
+  { id: 'screen_forge', label: 'Screen Capture', icon: Tv, title: 'Capture desktop screens, webcams, games, and browser tabs via The Screen Forge companion site' },
   { id: 'stock_media', label: 'Stock Media', icon: Film, title: 'Browse high quality external B-rolls loops' },
   { id: 'audio', label: 'Audio', icon: Music, title: 'Live synthesized soundboard and SFX effects' },
   { id: 'titles', label: 'Titles', icon: Type, title: 'Add captions and style overlay texts' },
@@ -690,6 +695,23 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          <a
+            href="https://thescreenforge.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => playSynthSFX('whoosh')}
+            className="forge-btn compact-btn border border-rose-950/45 bg-rose-950/15 hover:bg-rose-950/30 text-rose-400 hover:text-rose-300 transition-all cursor-pointer flex items-center gap-1.5 font-bold"
+            id="btn-companion-screenforge"
+            title="Launch The Screen Forge to record external screens, webcam overlays, games, and tabs"
+          >
+            <div className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </div>
+            <span>Screen Recorder</span>
+            <ExternalLink size={11} className="opacity-70" />
+          </a>
+
           <button 
             type="button"
             onClick={(e) => {
@@ -789,6 +811,23 @@ export default function App() {
                       <span className="w-1.5 h-1.5 rounded-full bg-zinc-650" />
                       <span>Presets</span>
                     </button>
+
+                    <div className="pt-2 border-t border-[#23252c]/55 mt-2">
+                      <div className="text-[9px] uppercase font-bold tracking-widest text-[#ef4444] font-mono select-none">
+                        Companion
+                      </div>
+                      <a
+                        href="https://thescreenforge.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full text-left py-1.5 px-2 text-rose-400 hover:text-rose-300 font-extrabold text-[10px] rounded flex items-center gap-1.5 cursor-pointer transition-all hover:bg-rose-950/20 mt-1"
+                        title="Record your screen with our companion app"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                        <span>The Screen Forge</span>
+                        <ExternalLink size={10} className="ml-auto opacity-60" />
+                      </a>
+                    </div>
                   </div>
                 </div>
 
@@ -806,13 +845,26 @@ export default function App() {
                     {editor.media.length === 0 ? (
                       <div className="text-center p-5 border border-dashed border-zinc-900 rounded-lg bg-zinc-950/25 text-zinc-550 min-h-[110px] flex flex-col items-center justify-center my-auto select-none">
                         <span className="text-2xl mb-1">📂</span>
-                        <p className="text-[10.5px] font-bold text-zinc-450">No files in media bin yet.</p>
-                        <button 
-                          onClick={() => setSidebarTab('stock_media')}
-                          className="text-[9.5px] mt-1 text-indigo-400 font-bold underline cursor-pointer hover:text-indigo-300"
-                        >
-                          Use preloaded scenic loops
-                        </button>
+                        <p className="text-[10.5px] font-bold text-zinc-450 font-sans">No files in media bin yet.</p>
+                        
+                        <div className="flex flex-col gap-1.5 mt-2">
+                          <button 
+                            onClick={() => setSidebarTab('stock_media')}
+                            className="text-[9.5px] mt-1 text-indigo-400 font-bold underline cursor-pointer hover:text-indigo-300"
+                          >
+                            Use preloaded scenic loops
+                          </button>
+                          <span className="text-[9px] text-zinc-650">or sister app</span>
+                          <a 
+                            href="https://thescreenforge.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[9.5px] text-rose-400 hover:text-rose-300 font-bold flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <span>Record with The Screen Forge</span>
+                            <ExternalLink size={9} />
+                          </a>
+                        </div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
@@ -843,6 +895,10 @@ export default function App() {
                     )}
                   </div>
                 </div>
+              </div>
+            ) : sidebarTab === 'screen_forge' ? (
+              <div className="flex-1 flex flex-col h-full min-h-0">
+                <ScreenCaptureTab editor={editor} />
               </div>
             ) : sidebarTab === 'stock' || sidebarTab === 'stock_media' ? (
               <div className="space-y-4 pr-0.5 flex-grow">

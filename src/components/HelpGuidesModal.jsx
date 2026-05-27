@@ -58,6 +58,23 @@ Essential design tips for subtitles:
 1. High Contrast: Always wrap text in soft border containers or dark dropshadows.
 2. Bite-sized Text: Keep lines under 4-5 words. Rapidly sequential captions sustain attention better than blocks of text.
 3. Placement: Keep subtitles in the lower-middle portion of the screen, away from social media UI overlay margins.`
+  },
+  {
+    id: 'companion-screen-forge',
+    category: 'Ecosystem',
+    title: 'Precision Capture: Splicing Screen Forge Recordings',
+    author: 'VideoForge Integration Staff',
+    readTime: '5 min read',
+    summary: 'The easiest way to capture browser sessions, tutorials, or meetings on The Screen Forge and edit them here.',
+    content: `Need background source files, high-fidelity guides, or desktop walkthrough recordings for your project? The easiest road is integrating with our sister companion capture application, The Screen Forge (https://thescreenforge.com/).
+
+Workflow execution:
+1. Launch Recorder: Click the "Screen Capture" tab in our horizontal workflow bar or click the "Screen Recorder" link in the header. Click "Launch Screen Forge" to host a capturing session on our companion platform in a side tab.
+2. Direct Screen Capture: On Screen Forge, capture standard HD screens, single browser windows, camera feeds, or custom application stages.
+3. Fetch Files: Save or export the result to your native device.
+4. Drag & Drop: Drag the downloaded file directly into our multi-track timeline below.
+
+By utilizing high-framerate hardware captures from The Screen Forge, you ensure perfectly synced cursor motions and crisp layout texts to splice seamlessly inside VideoForge.`
   }
 ]
 
@@ -73,6 +90,10 @@ export default function HelpGuidesModal({ isOpen, onClose }) {
   }
 
   const faqItems = [
+    {
+      question: 'How do I use The Screen Forge for screen recordings?',
+      answer: "We have partnered with The Screen Forge (https://thescreenforge.com/) to render an integrated workflow ecosystem! Head to our 'Screen Capture' tab in the left sidebar or directly click the 'Screen Recorder ↗' button in the top header. You can capture high-framerate screens, chrome windows, or custom webcams directly, download the resulting file, and drop it straight into our timeline!"
+    },
     {
       question: 'How do I add media to the timeline tracks?',
       answer: 'First, drop files in the left "Project Media" sidebar, or click inside the zone to upload them. Once files exist in your Project Media library, drag and drop any media card directly onto one of the dedicated timeline tracks below (such as Video Track 1, Voice Track, or Music).'
