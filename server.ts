@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -44,7 +45,23 @@ async function startServer() {
   });
 
   app.get("/sitemap.xml", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "public", "sitemap.xml"));
+    try {
+      const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
+      let content = fs.readFileSync(sitemapPath, "utf8");
+
+      // Determine client host dynamically
+      const host = req.get("host") || "thevideoforge.com";
+      const protocol = req.headers["x-forwarded-proto"] || "https";
+      const baseUrl = `${protocol}://${host}`;
+
+      // Dynamically replace the default/previous domain references with the current domain
+      content = content.replace(/https:\/\/videoforge\.app/g, baseUrl);
+
+      res.header("Content-Type", "application/xml");
+      res.send(content);
+    } catch (err) {
+      res.sendFile(path.join(process.cwd(), "public", "sitemap.xml"));
+    }
   });
 
   app.get("/BingSiteAuth.xml", (req, res) => {
@@ -53,6 +70,17 @@ async function startServer() {
 
   app.get("/ads.txt", (req, res) => {
     res.sendFile(path.join(process.cwd(), "public", "ads.txt"));
+  });
+
+  // Direct Ad Service Worker verification routes
+  app.get("/sw.js", (req, res) => {
+    res.setHeader("Content-Type", "application/javascript");
+    res.sendFile(path.join(process.cwd(), "public", "sw.js"));
+  });
+
+  app.get("/service-worker.js", (req, res) => {
+    res.setHeader("Content-Type", "application/javascript");
+    res.sendFile(path.join(process.cwd(), "public", "service-worker.js"));
   });
 
   // API Route for Gemini AI Forge features
