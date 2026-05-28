@@ -68,21 +68,6 @@ async function startServer() {
     res.sendFile(path.join(process.cwd(), "public", "BingSiteAuth.xml"));
   });
 
-  app.get("/ads.txt", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "public", "ads.txt"));
-  });
-
-  // Direct Ad Service Worker verification routes
-  app.get("/sw.js", (req, res) => {
-    res.setHeader("Content-Type", "application/javascript");
-    res.sendFile(path.join(process.cwd(), "public", "sw.js"));
-  });
-
-  app.get("/service-worker.js", (req, res) => {
-    res.setHeader("Content-Type", "application/javascript");
-    res.sendFile(path.join(process.cwd(), "public", "service-worker.js"));
-  });
-
   // API Route for Gemini AI Forge features
   app.post("/api/ai-forge", async (req, res) => {
     try {
