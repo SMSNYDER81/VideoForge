@@ -39,6 +39,80 @@ async function startServer() {
     res.send("google-site-verification: googleb8fa65557eccd013.html");
   });
 
+  // Dynamic Google AdSense ads.txt Verification Endpoint
+  app.get("/ads.txt", (req, res) => {
+    res.type("text/plain");
+    let publisherId = process.env.ADSENSE_PUBLISHER_ID || "";
+    
+    // Check if custom config exists dynamically
+    const configPath = path.join(process.cwd(), "adsense-config.json");
+    if (fs.existsSync(configPath)) {
+      try {
+        const configData = JSON.parse(fs.readFileSync(configPath, "utf8"));
+        if (configData.publisherId) {
+          publisherId = configData.publisherId;
+        }
+      } catch (e) {
+        // Safe skip fallback
+      }
+    }
+    
+    // Clean and validate format
+    let cleanId = publisherId.trim();
+    if (cleanId) {
+      if (!cleanId.startsWith("pub-")) {
+        cleanId = "pub-" + cleanId;
+      }
+      res.send(`google.com, ${cleanId}, DIRECT, f08c47fec0942fa0\n`);
+    } else {
+      // If no custom ID is set, check if a static file exists in public directory
+      const publicPath = path.join(process.cwd(), "public", "ads.txt");
+      if (fs.existsSync(publicPath)) {
+        res.sendFile(publicPath);
+      } else {
+        // Default instructive template which AdSense crawlers can read or user can update
+        res.send(`google.com, pub-741309597469, DIRECT, f08c47fec0942fa0\n# Replace the above publisher ID with your actual Google AdSense Publisher ID in the VideoForge Help & Guides AdSense Setup Panel.\n`);
+      }
+    }
+  });
+
+  // GET AdSense Settings
+  app.get("/api/adsense-config", (req, res) => {
+    let publisherId = process.env.ADSENSE_PUBLISHER_ID || "";
+    const configPath = path.join(process.cwd(), "adsense-config.json");
+    if (fs.existsSync(configPath)) {
+      try {
+        const configData = JSON.parse(fs.readFileSync(configPath, "utf8"));
+        if (configData.publisherId) {
+          publisherId = configData.publisherId;
+        }
+      } catch (e) {}
+    }
+    res.json({ publisherId });
+  });
+
+  // POST AdSense Settings
+  app.post("/api/adsense-config", (req, res) => {
+    const { publisherId } = req.body;
+    let cleanId = (publisherId || "").trim();
+    
+    // Extract pub- prefix in case user adds full line or copy/pastes
+    if (cleanId.includes("pub-")) {
+      const match = cleanId.match(/pub-\d+/);
+      if (match) cleanId = match[0];
+    } else if (/^\d+$/.test(cleanId)) {
+      cleanId = "pub-" + cleanId;
+    }
+
+    try {
+      const configPath = path.join(process.cwd(), "adsense-config.json");
+      fs.writeFileSync(configPath, JSON.stringify({ publisherId: cleanId }, null, 2), "utf8");
+      res.json({ success: true, publisherId: cleanId });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Direct Sitemap, Robots.txt, and Bing Auth Routes for Search Console/Indexing Reliability
   app.get("/robots.txt", (req, res) => {
     res.sendFile(path.join(process.cwd(), "public", "robots.txt"));
