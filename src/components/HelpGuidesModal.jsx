@@ -87,6 +87,7 @@ export default function HelpGuidesModal({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('guides') // 'guides' | 'shortcuts' | 'blog' | 'adsense'
   const [expandedFaq, setExpandedFaq] = useState(null)
   const [selectedArticle, setSelectedArticle] = useState(null)
+  const [showAdsenseTab, setShowAdsenseTab] = useState(false)
 
   // Google AdSense states
   const [publisherId, setPublisherId] = useState('')
@@ -96,6 +97,19 @@ export default function HelpGuidesModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
+      // Show AdSense Option tab only if 'admin=true', 'adsense=true', or hash #admin/#adsense is present in the URL
+      const params = new URLSearchParams(window.location.search)
+      const hasAdminParam = params.get('admin') === 'true' || params.get('adsense') === 'true'
+      const hasHash = window.location.hash === '#admin' || window.location.hash === '#adsense'
+      if (hasAdminParam || hasHash) {
+        setShowAdsenseTab(true)
+      } else {
+        setShowAdsenseTab(false)
+        if (activeTab === 'adsense') {
+          setActiveTab('guides')
+        }
+      }
+
       fetch('/api/adsense-config')
         .then((res) => res.json())
         .then((data) => {
@@ -105,7 +119,7 @@ export default function HelpGuidesModal({ isOpen, onClose }) {
         })
         .catch((err) => console.error('Failed to load AdSense config:', err))
     }
-  }, [isOpen])
+  }, [isOpen, activeTab])
 
   const handleSaveAdsense = async (e) => {
     e.preventDefault()
@@ -249,20 +263,22 @@ export default function HelpGuidesModal({ isOpen, onClose }) {
               <Sparkles size={14} />
               Editing Articles & Tips
             </button>
-            <button
-              onClick={() => {
-                setActiveTab('adsense')
-                setSelectedArticle(null)
-              }}
-              className={`py-3.5 text-xs font-semibold tracking-wide border-b-2 px-1 transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'adsense' 
-                  ? 'border-indigo-500 text-indigo-400' 
-                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <Activity size={14} className="text-[#6366f1]" />
-              AdSense Integration
-            </button>
+            {showAdsenseTab && (
+              <button
+                onClick={() => {
+                  setActiveTab('adsense')
+                  setSelectedArticle(null)
+                }}
+                className={`py-3.5 text-xs font-semibold tracking-wide border-b-2 px-1 transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'adsense' 
+                    ? 'border-indigo-500 text-indigo-400' 
+                    : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <Activity size={14} className="text-[#6366f1]" />
+                AdSense Integration
+              </button>
+            )}
           </div>
 
           {activeTab === 'shortcuts' && (
@@ -456,7 +472,7 @@ export default function HelpGuidesModal({ isOpen, onClose }) {
           )}
 
           {/* Google AdSense Integration Tab */}
-          {activeTab === 'adsense' && (
+          {activeTab === 'adsense' && showAdsenseTab && (
             <div className="max-w-3xl mx-auto space-y-6 animate-fade-in pl-1 pr-1 pb-4 text-zinc-300">
               <div className="bg-indigo-950/15 border border-indigo-900/40 p-4 rounded-xl flex items-start gap-3.5 select-none text-zinc-300">
                 <Globe size={22} className="text-[#6366f1] shrink-0 mt-0.5" />
